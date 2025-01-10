@@ -3,6 +3,9 @@
 import datetime
 import smtplib
 from email.mime.text import MIMEText
+from lib.loadprops import *
+
+
 
 # import urllib2
 
@@ -10,9 +13,13 @@ from email.mime.text import MIMEText
 def sendemail(msgstr):
     # Change to your own account information
     # to = "alessio.bordignon@gmail.com"
-    recipients = ["alessio.bordignon@gmail.com", "alessio@alma-ag.it"]
-    gmail_user = "system.bordignon@gmail.com"
-    gmail_password = "dwqq fpef txem bgun"
+    
+    configs = loadprops()
+    
+    recipients = configs.get("recipients").data.split(',')
+    gmail_user = configs.get("gmail_user").data
+    gmail_password = configs.get("gmail_password").data
+    print (recipients)
     smtpserver = smtplib.SMTP("smtp.gmail.com", 587)
     smtpserver.ehlo()
     smtpserver.starttls()

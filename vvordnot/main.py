@@ -1,13 +1,15 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-
+from lib.functions import sendemail
 import mysql.connector
 import pandas as pd
 import tabulate
-from lib.functions import sendemail
+from lib.loadprops import *
+
+configs = loadprops()
 
 mydb = mysql.connector.connect(
-    host="localhost", user="root", password="ofbiz", database="ofbiz"
+    host="localhost", user=configs.get("DB_User").data, password=configs.get("DB_PWD").data, database=configs.get("DB_Name").data
 )
 
 mycursor = mydb.cursor()
@@ -29,7 +31,7 @@ mycursor.execute(sql, args)
 myresult = mycursor.fetchall()
 partner = []
 kg = []
-if len(myresult) > 0:
+if len(myresult) >= 0:
     for x in myresult:
         partner.append(x[0])
         kg.append(x[1])
@@ -42,5 +44,5 @@ if len(myresult) > 0:
         df, tablefmt="grid", headers=["Partner", "Súly"], showindex=False
     )
     # print(type(str))
-    # print(str)
+    print(str)
     sendemail(str)
