@@ -40,23 +40,31 @@ if len(myresult) >= 0:
     mycursor.execute(sql2, args)
     myresult = mycursor.fetchall()
 
-    partner = []
-    prod = []
-    ord = []
-    qty = []
+    partner2 = []
+    prod2 = []
+    ord2 = []
+    qty2 = []
     for x in myresult:
-        partner.append(x[0])
-        prod.append(x[1])
-        ord.append(x[2])
-        qty.append(x[3])
+        partner2.append(x[0])
+        prod2.append(x[1])
+        ord2.append(x[2])
+        qty2.append(x[3])
 
     data = {"partners": partner, "kg": kg}
+    data2 = {"partners": partner2, "prod": prod2, "ord" : ord2,"qty" : qty2}
     df = pd.DataFrame(data)
+    df2 = pd.DataFrame(data2)
     df = df.map(lambda x: round(x, 0) if isinstance(x, (int, float, Decimal)) else x)
+    df2 = df2.map(lambda x: round(x, 0) if isinstance(x, (int, float, Decimal)) else x)
 
     str = tabulate.tabulate(
         df, tablefmt="grid", headers=["Partner", "Súly"], showindex=False
     )
+    str2 = tabulate.tabulate(
+        df2, tablefmt="grid", headers=["Partner", "Termék", "Rendelés szám", "Mennyíség"], showindex=False
+    )
     # print(type(str))
-    print(str)
-#    sendemail(str)
+    messages = (str, str2)
+    message = "\n".join(messages)
+    #print(message)
+    sendemail(message)
