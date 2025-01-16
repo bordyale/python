@@ -10,7 +10,7 @@ from lib.loadprops import *
 # import urllib2
 
 
-def sendemail(msgstr):
+def sendemail(msgstr, passed_subject):
     # Change to your own account information
     # to = "alessio.bordignon@gmail.com"
     
@@ -35,9 +35,9 @@ def sendemail(msgstr):
     # extipaddr = urllib2.urlopen("http://icanhazip.com").read().decode('utf-8')
 
     msg = MIMEText(msgstr)
-    msg["Subject"] = "Vulkán rendelések rögzítve ezen a napon: %s" % today.strftime(
-        "%b %d %Y"
-    )
+    subject = configs.get(passed_subject).data
+    print(subject)
+    msg["Subject"] = f"{subject} %s" % today.strftime( "%b %d %Y")
     msg["From"] = gmail_user
     msg["To"] = ", ".join(recipients)
     smtpserver.sendmail(gmail_user, recipients, msg.as_string())

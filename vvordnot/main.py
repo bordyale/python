@@ -67,4 +67,4 @@ if len(myresult) >= 0:
     messages = (str, str2)
     message = "\n".join(messages)
     #print(message)
-    sendemail(message)
+    sendemail(message,"rend_subject")
