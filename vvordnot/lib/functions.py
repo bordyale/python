@@ -36,7 +36,6 @@ def sendemail(msgstr, passed_subject):
 
     msg = MIMEText(msgstr)
     subject = configs.get(passed_subject).data
-    print(subject)
     msg["Subject"] = f"{subject} %s" % today.strftime( "%b %d %Y")
     msg["From"] = gmail_user
     msg["To"] = ", ".join(recipients)
