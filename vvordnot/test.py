@@ -14,22 +14,36 @@ def default():
 
 option ='b'
 func = {'a': a, 'b': b, 'c': c, 'd':d}
-print(type(func))
-
 func.get(option,default)()
-print(func.get(option,default))
 
 
-msg1 = 'ciao'
-msg2 = msg1
-msg1 = 'prova'
-print(msg1, msg2)
-num1 = 1
-num2 = num1
-num2 = num2 + 1
-print(num1,num2)
 
+class Person(object):
+    def __init__(self,name):
+        self.name = name
+        print('name:',name)
+    def __getattr__(self,item):
+        print('getattr:',item, self.name)
 
+c = Person('Alessio')
+c.ciao
+
+with open('requirements.txt', 'r') as file:
+    line = file.readline()
+    while line:
+        print('linea:', line)
+        line = file.readline()
+#shop1 = {'name': 'Lidl', 'latte': 'Stg','succo': 'sabelli'}
+#shop2 = {'name': 'Aldi', 'latte': 'Brescia','succo': 'trv'}
+#shop3 = {'name': 'Auchan', 'latte': 'Centrale','succo': 'trv'}
+#basket = {}
+#for shop in (shop1,shop2,shop3):
+#    name = shop.pop('name')
+#    print(f'Shop name: {name}')
+#    item = input('Insert item:')
+#    basket.update({name: shop.get(item)})
+#
+#print(f'Basket: {basket.items()}')
 
 
 ## Python program to convert the currency
