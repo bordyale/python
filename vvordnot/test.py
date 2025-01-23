@@ -27,12 +27,26 @@ class Person(object):
 
 c = Person('Alessio')
 c.ciao
-
-with open('requirements.txt', 'r') as file:
+fw = open('exportOk.csv', "w")
+with open('VvOrderReportExport.csv', 'r') as file:
     line = file.readline()
     while line:
+        uline = line.replace(chr(160),'')
         print('linea:', line)
+        print('ulinea:', uline)
+        #uline = ' '.join(line.split())
+        linec = ''
+        for char in line:
+            linec = linec + f' {char}:{str(ord(char))}'
+        ulinec = ''
+        for char in uline:
+            ulinec = ulinec + ' ' + char + ':' + str(ord(char))
+        print('linec:', linec)
+        print('ulinec:', ulinec)
+        fw.write(uline)
+        fw.write('\n')
         line = file.readline()
+fw.close()
 #shop1 = {'name': 'Lidl', 'latte': 'Stg','succo': 'sabelli'}
 #shop2 = {'name': 'Aldi', 'latte': 'Brescia','succo': 'trv'}
 #shop3 = {'name': 'Auchan', 'latte': 'Centrale','succo': 'trv'}
