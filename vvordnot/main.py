@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from lib.functions import sendemail
+from lib.functions import sendemailHtml
 import mysql.connector
 import pandas as pd
 import tabulate
@@ -67,7 +67,7 @@ def main():
 
     message = buildmess()
     
-    sendemail(message,"rend_subject")
+    sendemailHtml(message,"rend_subject")
 
 if __name__=="__main__":
     main()
