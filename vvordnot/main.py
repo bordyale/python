@@ -5,6 +5,7 @@ import mysql.connector
 import pandas as pd
 import tabulate
 from lib.loadprops import *
+from pretty_html_table import build_table
 
 def buildmess() -> str:
     configs = loadprops()
@@ -44,30 +45,35 @@ def buildmess() -> str:
             ord2.append(x[2])
             qty2.append(x[3])
 
-        data = {"partners": partner, "kg": kg}
-        data2 = {"partners": partner2, "prod": prod2, "ord" : ord2,"qty" : qty2}
+        data = {"Partners": partner, "Kg": kg}
+        data2 = {"Rend.Az." : ord2, "Partners": partner2, "Termék": prod2, "Db" : qty2}
         df = pd.DataFrame(data)
         df2 = pd.DataFrame(data2)
         df = df.map(lambda x: round(x, 0) if isinstance(x, (int, float, Decimal)) else x)
         df2 = df2.map(lambda x: round(x, 0) if isinstance(x, (int, float, Decimal)) else x)
-
-        str = tabulate.tabulate(
-            df, tablefmt="grid", headers=["Partner", "Súly"], showindex=False
-        )
-        str2 = tabulate.tabulate(
-            df2, tablefmt="grid", headers=["Partner", "Termék", "Rendelés szám", "Mennyíség"], showindex=False
-        )
+        # html = df.to_html(classes='table table-stripped')  
+        html =  build_table(df,'blue_light')
+        html2 =  build_table(df2,'green_light')
+        #print('html:', html)
+        #str = tabulate.tabulate(
+        #    df, tablefmt="grid", headers=["Partner", "Súly"], showindex=False
+        #)
+        #str2 = tabulate.tabulate(
+        #    df2, tablefmt="grid", headers=["Partner", "Termék", "Rendelés szám", "Mennyíség"], showindex=False
+        #)
         # print(type(str))
-        messages = (str, str2)
-        message = "\n".join(messages)
+        # messages = (str, str2)
+        # message = "\n".join(messages)
+        messages = (html, html2)
+        htmltable= "\n".join(messages)
         #print(message)
-    return message
+    return htmltable
 
 def main():
 
-    message = buildmess()
+    htmltable = buildmess()
     
-    sendemailHtml(message,"rend_subject")
+    sendemailHtml(htmltable,"rend_subject")
 
 if __name__=="__main__":
     main()

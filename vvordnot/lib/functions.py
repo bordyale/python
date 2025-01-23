@@ -44,7 +44,7 @@ def sendemail(msgstr, passed_subject):
     return "ok"
 
 
-def sendemailHtml(msgstr, passed_subject):
+def sendemailHtml(htmltable, passed_subject):
      
     configs = loadprops()
     
@@ -56,7 +56,7 @@ def sendemailHtml(msgstr, passed_subject):
     msg['Subject'] = configs.get(passed_subject).data
     msg['From'] = EMAIL_ADDRESS
     msg['To'] = EMAIL_ADDRESS_TO
-    msg.set_content('''
+    htmlcontent =f'''
         <!DOCTYPE html>
         <html>
         <head>
@@ -64,35 +64,21 @@ def sendemailHtml(msgstr, passed_subject):
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style type="text/css">
-              h1{font-size:56px}
-              h2{font-size:28px;font-weight:900}
-              p{font-weight:100}
-              td{vertical-align:top}
-              #email{margin:auto;width:600px;background-color:#fff}
+              h1{{font-size:56px}}
+              h2{{font-size:28px;font-weight:900}}
+              p{{font-weight:100}}
+              td{{vertical-align:top}}
+              #email{{margin:auto;width:600px;background-color:#fff}}
             </style>
         </head>
         <body bgcolor="#F5F8FA" style="width: 100%; font-family:Lato, sans-serif; font-size:18px;">
         <div id="email">
-            <table role="presentation" width="100%">
-                <tr>
-                    <td bgcolor="#00A4BD" align="center" style="color: white;">
-                        <h1> Welcome!</h1>
-                    </td>
-            </table>
-            <table role="presentation" border="0" cellpadding="0" cellspacing="10px" style="padding: 30px 30px 30px 60px;">
-                <tr>
-                    <td>
-                        <h2>Custom stylized email</h2>
-                        <p>
-                            You can add HTML/CSS code here to stylize your emails.
-                        </p>
-                    </td>
-                </tr>
-            </table>
+            {htmltable}
         </div>
         </body>
         </html>
-    ''', subtype='html')
+    '''
+    msg.set_content(htmlcontent, subtype='html')
      
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
         smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)

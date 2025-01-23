@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from lib.functions import sendemail
+from lib.functions import sendemailHtml
 import mysql.connector
 import pandas as pd
 import tabulate
 from lib.loadprops import *
+from pretty_html_table import build_table
 
 def buildmess() -> str:
     configs = loadprops()
@@ -71,25 +72,30 @@ def buildmess() -> str:
         df2 = df2.map(lambda x: round(x, 0) if isinstance(x, (int, float, Decimal)) else x)
         errDf = errDf.map(lambda x: round(x, 0) if isinstance(x, (int, float, Decimal)) else x)
 
-        str = tabulate.tabulate(
-            df, tablefmt="grid", headers=["productId", "whqty"], showindex=False
-        )
-        str2 = tabulate.tabulate(
-            df2, tablefmt="grid", headers=["productId", "shqty"], showindex=False
-        )
-        errStr = tabulate.tabulate(
-            errDf, tablefmt="grid", headers=["productId", "prodName", "whqty", "shqty"], showindex=False
-        )
-        # print(type(str))
-        messages = (str2, str, errStr)
-        message = "\n".join(messages)
-    return message
+        html =  build_table(df,'blue_light')
+        html2 =  build_table(df2,'green_light')
+        html3 =  build_table(errDf,'orange_light')
+        #str = tabulate.tabulate(
+        #    df, tablefmt="grid", headers=["productId", "whqty"], showindex=False
+        #)
+        #str2 = tabulate.tabulate(
+        #    df2, tablefmt="grid", headers=["productId", "shqty"], showindex=False
+        #)
+        #errStr = tabulate.tabulate(
+        #    errDf, tablefmt="grid", headers=["productId", "prodName", "whqty", "shqty"], showindex=False
+        #)
+        ## print(type(str))
+        #messages = (str2, str, errStr)
+        #message = "\n".join(messages)
+        messages = (html, html2, html3)
+        htmltable= "\n".join(messages)
+    return htmltable 
 
 def main():
 
     message = buildmess()
     
-    sendemail(message,"ship_subject")
+    sendemailHtml(message,"ship_subject")
 
 if __name__=="__main__":
     main()
