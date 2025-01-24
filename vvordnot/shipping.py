@@ -17,7 +17,8 @@ def buildmess() -> str:
     mycursor = mydb.cursor()
     startdate = datetime.today() - timedelta(days=5)
     enddate = datetime.today() + timedelta(days=1)
-    whquery = "SELECT PRODUCT_ID, SUM(QUANTITY) AS WHQTY FROM VV_WAREHOUSE WHERE STATUS= 'VV_WH_CHANGE_2' AND VV_WAREHOUSE.DATE > %s AND VV_WAREHOUSE.DATE <= %s GROUP BY PRODUCT_ID"
+    whquery = "SELECT VV_WAREHOUSE.PRODUCT_ID, SUM(QUANTITY) AS WHQTY, NAME FROM VV_WAREHOUSE INNER JOIN VV_PRODUCT ON VV_WAREHOUSE.PRODUCT_ID = VV_PRODUCT.PRODUCT_ID WHERE STATUS = 'VV_WH_CHANGE_2' AND VV_WAREHOUSE.DATE > %s AND VV_WAREHOUSE.DATE <= %s GROUP BY PRODUCT_ID"
+    # whquery = "SELECT PRODUCT_ID, SUM(QUANTITY) AS WHQTY FROM VV_WAREHOUSE WHERE STATUS= 'VV_WH_CHANGE_2' AND VV_WAREHOUSE.DATE > %s AND VV_WAREHOUSE.DATE <= %s GROUP BY PRODUCT_ID"
     shquery = "SELECT VV_PRODUCT.PRODUCT_ID, SUM(QUANTITY) AS SHQTY, NAME FROM VV_SHIPMENT INNER JOIN VV_SHIPMENT_ITEM ON VV_SHIPMENT.SHIPMENT_ID = VV_SHIPMENT_ITEM.SHIPMENT_ID INNER JOIN VV_PRODUCT ON VV_SHIPMENT_ITEM.PRODUCT_ID=VV_PRODUCT.PRODUCT_ID WHERE VV_SHIPMENT.SHIPMENT_DATE > %s AND VV_SHIPMENT.SHIPMENT_DATE <= %s GROUP BY PRODUCT_ID"
     args = startdate, enddate
     mycursor.execute(whquery, args)
@@ -28,17 +29,20 @@ def buildmess() -> str:
     whdict = dict()
     if len(myresult) >= 0:
         productId= []
+        prodNameWh = []
         whqty = []
         for x in myresult:
             productId.append(x[0])
             whqty.append(x[1])
+            prodNameWh.append(x[2])
             whdict[x[0]]=x
-            print(type(x[1]))
+            # print(type(x[1]))
 
         mycursor.execute(shquery, args)
         myresult = mycursor.fetchall()
 
         productId2= []
+        prodName2= []
         shqty = []
         errProdId = []
         errProdName= []
@@ -48,7 +52,6 @@ def buildmess() -> str:
             prodId = x[0]
             shquantity = x[1]
             prodName = x[2]
-            print(type(shquantity))
             if prodId not in whdict:
                 errProdId.append(prodId)
                 errWhQty.append(0)
@@ -60,11 +63,12 @@ def buildmess() -> str:
                 errShQty.append(shquantity)
                 errProdName.append(prodName)
             productId2.append(prodId)
+            prodName2.append(prodName)
             shqty.append(shquantity)
 
-        wh = {"productId": productId, "whqty": whqty}
-        sh = {"productId": productId2, "shqty": shqty}
-        err = {"productId": errProdId, "prodName": errProdName, "whqty": errWhQty, "shqty": errShQty}
+        wh = {"productId": productId,"prodName": prodNameWh, "whqty": whqty}
+        sh = {"productId": productId2,"prodName": prodName2, "shqty": shqty}
+        err = {"Termék Az.": errProdId, "Név": errProdName, "Rakt.Vált.Db": errWhQty, "Szállított Db": errShQty}
         df = pd.DataFrame(wh)
         df2 = pd.DataFrame(sh)
         errDf = pd.DataFrame(err)
@@ -87,7 +91,7 @@ def buildmess() -> str:
         ## print(type(str))
         #messages = (str2, str, errStr)
         #message = "\n".join(messages)
-        messages = (html, html2, html3)
+        messages = (html3, html2, html)
         htmltable= "\n".join(messages)
     return htmltable 
 
