@@ -53,7 +53,9 @@ def sendemailHtml(htmltable, passed_subject):
     EMAIL_PASSWORD = configs.get("gmail_password").data
      
     msg = EmailMessage()
-    msg['Subject'] = configs.get(passed_subject).data
+    today = datetime.date.today()
+    subject = configs.get(passed_subject).data
+    msg['Subject'] = f"{subject} %s" % today.strftime( "%b %d %Y")
     msg['From'] = EMAIL_ADDRESS
     msg['To'] = EMAIL_ADDRESS_TO
     htmlcontent =f'''
