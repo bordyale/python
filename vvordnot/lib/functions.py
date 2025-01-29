@@ -2,10 +2,10 @@
 # modified from http://elinux.org/RPi_Email_IP_On_Boot_Debian
 import datetime
 import smtplib
-from email.mime.text import MIMEText
-from lib.loadprops import *
 from email.message import EmailMessage
+from email.mime.text import MIMEText
 
+from lib.loadprops import *
 
 # import urllib2
 
@@ -13,13 +13,13 @@ from email.message import EmailMessage
 def sendemail(msgstr, passed_subject):
     # Change to your own account information
     # to = "alessio.bordignon@gmail.com"
-    
+
     configs = loadprops()
-    
-    recipients = configs.get("recipients").data.split(',')
+
+    recipients = configs.get("recipients").data.split(",")
     gmail_user = configs.get("gmail_user").data
     gmail_password = configs.get("gmail_password").data
-    print (recipients)
+    print(recipients)
     smtpserver = smtplib.SMTP("smtp.gmail.com", 587)
     smtpserver.ehlo()
     smtpserver.starttls()
@@ -36,7 +36,7 @@ def sendemail(msgstr, passed_subject):
 
     msg = MIMEText(msgstr)
     subject = configs.get(passed_subject).data
-    msg["Subject"] = f"{subject} %s" % today.strftime( "%b %d %Y")
+    msg["Subject"] = f"{subject} %s" % today.strftime("%b %d %Y")
     msg["From"] = gmail_user
     msg["To"] = ", ".join(recipients)
     smtpserver.sendmail(gmail_user, recipients, msg.as_string())
@@ -45,20 +45,19 @@ def sendemail(msgstr, passed_subject):
 
 
 def sendemailHtml(htmltable, passed_subject):
-     
     configs = loadprops()
-    
-    EMAIL_ADDRESS_TO = configs.get("recipients").data.split(',')
+
+    EMAIL_ADDRESS_TO = configs.get("recipients").data.split(",")
     EMAIL_ADDRESS = configs.get("gmail_user").data
     EMAIL_PASSWORD = configs.get("gmail_password").data
-     
+
     msg = EmailMessage()
     today = datetime.date.today()
     subject = configs.get(passed_subject).data
-    msg['Subject'] = f"{subject} %s" % today.strftime( "%b %d %Y")
-    msg['From'] = EMAIL_ADDRESS
-    msg['To'] = EMAIL_ADDRESS_TO
-    htmlcontent =f'''
+    msg["Subject"] = f"{subject} %s" % today.strftime("%b %d %Y")
+    msg["From"] = EMAIL_ADDRESS
+    msg["To"] = EMAIL_ADDRESS_TO
+    htmlcontent = f"""
         <!DOCTYPE html>
         <html>
         <head>
@@ -79,9 +78,21 @@ def sendemailHtml(htmltable, passed_subject):
         </div>
         </body>
         </html>
-    '''
-    msg.set_content(htmlcontent, subtype='html')
-     
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+    """
+    msg.set_content(htmlcontent, subtype="html")
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         smtp.send_message(msg)
+
+
+class Sql_query(object):
+    def __init__(self, sqldir):
+        self.sqldir = sqldir
+
+    def __getattr__(self, item):
+        sqlFile = f"{self.sqldir}/{item}.sql".strip()
+        # print(f"sqlFile: {sqlFile}")
+        with open(sqlFile, "r") as file:
+            data = file.read()
+            return data
