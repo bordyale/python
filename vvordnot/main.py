@@ -134,7 +134,10 @@ def main():
     html3 = buildmess3(mycursor, sql)
     messages = (html, html2, html3)
     htmltable = "\n".join(messages)
-    sendemailHtml(htmltable, "rend_subject")
+    footer = f"""<p style="color:#1f1f1f; font-family:Century Gothic,sans-serif; font-weight: bold;">
+         További info a következő linkre megtalálható (Vulkán halozanton belűl): <a href="https://192.168.1.245:8443/vvorder/control/main">VV_SERVER</a>
+    </p>"""
+    sendemailHtml(htmltable + footer, "rend_subject")
 
 
 if __name__ == "__main__":
