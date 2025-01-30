@@ -17,7 +17,9 @@ def buildmess(mycursor, sql) -> str:
     partner = []
     kg = []
     ship_before_date = []
-    if len(myresult) >= 0:
+    html = ''
+    title = ''
+    if len(myresult) > 0:
         partner = []
         kg = []
         ship_before_date = []
@@ -44,7 +46,8 @@ def buildmess2(mycursor, sql) -> str:
     args = yesterday, datetime.today()
     mycursor.execute(sql2, args)
     myresult = mycursor.fetchall()
-    if len(myresult) >= 0:
+    html2 = ''
+    if len(myresult) > 0:
         partner2 = []
         prod2 = []
         ord2 = []
@@ -72,8 +75,11 @@ def buildmess3(mycursor, sql) -> str:
     ship_before_date = []
     partner_name = []
     order_weight = []
+    order_name = []
     prog_net_weight = 0
-    if len(myresult) >= 0:
+    title = ''
+    html = ''
+    if len(myresult) > 0:
         for x in myresult:
             order_id = x[0]
             if order_id not in order_ids:
@@ -81,6 +87,7 @@ def buildmess3(mycursor, sql) -> str:
                 ship_before_date.append(x[1])
                 partner_name.append(x[6])
                 order_weight.append(x[7])
+                order_name.append(x[8])
             qty_to_ship = x[3]
             prod_weight = x[4]
             ord_quantity = x[5]
@@ -91,10 +98,11 @@ def buildmess3(mycursor, sql) -> str:
         # print(f"Progress net weight {prog_net_weight}")
         # print(f"orders list {order_ids}")
         data = {
-            "Rendelés": order_id,
+            "Rend.Az.": order_id,
             "Partner": partner_name,
+            "Part.Az.": order_name,
             "Hataridő": ship_before_date,
-            "Rendelés Súlya": order_weight,
+            "Rendelés Súly (Kg)": order_weight,
         }
         df = pd.DataFrame(data)
         df = df.map(
@@ -102,7 +110,8 @@ def buildmess3(mycursor, sql) -> str:
         )
         html = build_table(df, "blue_light")
         # print(f"Progress net weight {prog_net_weight}")
-        title = f"""<p style="color:#1f1f1f; font-family:Century Gothic,sans-serif; font-weight: bold;">Nyított Rendelések (Kg): {round(prog_net_weight, 0)}</p>"""
+        prog_net_weight_str = f'{prog_net_weight:,.0f}'.replace(',',' ')
+        title = f"""<p style="color:#1f1f1f; font-family:Century Gothic,sans-serif; font-weight: bold;">Nyított Rendelések (Kg): {prog_net_weight_str}</p>"""
         # print(title)
     return title + html
 

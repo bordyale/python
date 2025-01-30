@@ -69,7 +69,7 @@ def sendemailHtml(htmltable, passed_subject):
               h2{{font-size:28px;font-weight:900}}
               p{{font-weight:100}}
               td{{vertical-align:top}}
-              #email{{margin:auto;width:600px;background-color:#fff}}
+              #email{{margin:auto;width:800px;background-color:#fff}}
             </style>
         </head>
         <body bgcolor="#F5F8FA" style="width: 100%; font-family:Lato, sans-serif; font-size:18px;">
