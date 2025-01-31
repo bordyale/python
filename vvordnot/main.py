@@ -6,6 +6,7 @@ import pandas as pd
 from lib.functions import Sql_query, sendemailHtml
 from lib.loadprops import *
 from pretty_html_table import build_table
+import os
 
 
 def buildmess(mycursor, sql) -> str:
@@ -126,8 +127,12 @@ def main():
     )
     mycursor = mydb.cursor()
 
+
+    dirname, filename = os.path.split(os.path.abspath(__file__))
+    # print ("running from", dirname)
+    # print ("file is", filename)
     # Load sql query
-    sql = Sql_query("sql")
+    sql = Sql_query(dirname + "/sql")
     html = buildmess(mycursor, sql)
 
     html2 = buildmess2(mycursor, sql)
