@@ -1,7 +1,6 @@
 from lib.functions import Sql_query
 import os
 
-
 dirname, filename = os.path.split(os.path.abspath(__file__))
 print ("running from", dirname)
 print ("file is", filename)
