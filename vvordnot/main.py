@@ -99,7 +99,7 @@ def buildmess3(mycursor, sql) -> str:
         # print(f"Progress net weight {prog_net_weight}")
         # print(f"orders list {order_ids}")
         data = {
-            "Rend.Az.": order_id,
+            "Rend.Az.": order_ids,
             "Partner": partner_name,
             "Part.Az.": order_name,
             "Hataridő": ship_before_date,
