@@ -96,3 +96,8 @@ class Sql_query(object):
         with open(sqlFile, "r") as file:
             data = file.read()
             return data
+
+
+
+
+def get_next_seq_id(table, mycursor, sql):
