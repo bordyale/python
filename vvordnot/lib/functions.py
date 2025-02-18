@@ -3,6 +3,7 @@
 import datetime
 import smtplib
 from email.message import EmailMessage
+import mysql.connector
 from email.mime.text import MIMEText
 
 from lib.loadprops import *
@@ -89,7 +90,6 @@ def sendemailHtml(htmltable, passed_subject):
 class Sql_query(object):
     def __init__(self, sqldir):
         self.sqldir = sqldir
-
     def __getattr__(self, item):
         sqlFile = f"{self.sqldir}/{item}.sql".strip()
         # print(f"sqlFile: {sqlFile}")
@@ -100,4 +100,20 @@ class Sql_query(object):
 
 
 
-def get_next_seq_id(table, mycursor, sql):
+def get_next_seq_id(table, mydb, sql):
+    mycursor = mydb.cursor()
+    query = sql.sequence_value_item
+    args = (table,)
+    mycursor.execute(query, args)
+    seqs = mycursor.fetchall()
+    seq_id = ''
+    if len(seqs) > 0:
+        for seq in seqs:
+             seq_id = seq[0]
+    seq_id_int = int(seq_id) + 10
+    print(f'{seq_id_int}')
+    query = sql.sequence_value_item_update
+    args = (str(seq_id_int), table)
+    mycursor.execute(query, args)
+    mydb.commit()
+    return seq_id
