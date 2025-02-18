@@ -17,56 +17,54 @@ def buildmess(mydb, sql) :
     prods = mycursor.fetchall()
     prods_dict = {}
     prods_sym = {}
+    prods_div_freq = {}
     if len(prods) > 0:
         for prod in prods:
             prod_id = prod[0]
-            last_price_check = prod[1]
+            last_div_check = prod[3]
             sym = prod[2]
-            if last_price_check:
-                prods_dict[prod_id] = last_price_check
+            div_freq_id = prod[4]
+            if last_div_check:
+                prods_dict[prod_id] = last_div_check
             else:
                 prods_dict[prod_id] = yesterday
             prods_sym[prod_id] = sym
+            prods_div_freq[prod_id] = div_freq_id
         prods_list_sorted = sorted(prods_dict.items(), key=lambda x: x[1])
         # print(type(prods_list_sorted))
         prods_dict_sorted = dict(prods_list_sorted)
         for prod_id, value in prods_dict_sorted.items():
             print(prod_id, ":", prods_sym[prod_id], ":", value)
-            query = sql.bfin_price
+            query = sql.bfin_div
             args = (prod_id,)
             mycursor.execute(query, args)
-            last_price = mycursor.fetchone()
+            last_div = mycursor.fetchone()
             ticker = yf.Ticker(prods_sym[prod_id])
-            his_dt = ticker.history(period="5d")
-            lenght = len(his_dt)
-            query = sql.bfin_prod_update
+            divids = ticker.get_dividends()
+            query = sql.bfin_prod_update_div
             args = (datetime.today(), datetime.today(), prod_id)
             mycursor.execute(query, args)
             mydb.commit()
-            if (lenght == 0):
+            if (len(divids) == 0):
                 continue
-            serie = his_dt.iloc[0]
-            if lenght > 2:
-                serie = his_dt.iloc[-2]
-            close_date = serie.name.to_pydatetime().replace(tzinfo=None)
-            close_price = serie[['Close']].iloc[0]
-            if last_price:
-                last_date = last_price[0]
-                print(f'{last_date=} {close_date=} {close_price=}')
-                if close_date > last_date:
-                    next_id = get_next_seq_id('BfinPrice', mydb, sql)
-                    query = sql.bfin_price_insert
-                    args = (next_id, prod_id, close_date, close_price, datetime.today(), datetime.today())
+            api_div = divids.iloc[-1]
+            indexes = divids.keys()
+            api_div_date = indexes[-1].to_pydatetime().replace(tzinfo=None)
+            if last_div:
+                last_date = last_div[0]
+                print(f'{last_date=} {api_div_date=} {api_div=}')
+                if api_div_date > last_date:
+                    next_id = get_next_seq_id('BfinDividend', mydb, sql)
+                    query = sql.bfin_div_insert
+                    args = (next_id, prod_id, api_div_date, api_div, prods_div_freq[prod_id], datetime.today(), datetime.today())
                     mycursor.execute(query, args)
                     mydb.commit()
             else:
-                next_id = get_next_seq_id('BfinPrice', mydb, sql)
-                query = sql.bfin_price_insert
-                args = (next_id, prod_id, close_date, close_price, datetime.today(), datetime.today())
+                next_id = get_next_seq_id('BfinDividend', mydb, sql)
+                query = sql.bfin_div_insert
+                args = (next_id, prod_id, api_div_date, api_div, prods_div_freq[prod_id], datetime.today(), datetime.today())
                 mycursor.execute(query, args)
                 mydb.commit()
-
-
 def main():
     configs = loadprops()
     mydb = mysql.connector.connect(

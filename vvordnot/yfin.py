@@ -1,11 +1,11 @@
 import yfinance as yf
-ticker = yf.Ticker("ZPRG.DE")
-historical_data = ticker.history(period="5d")
-print(type(historical_data))
+ticker = yf.Ticker("SXR8.DE")
+# historical_data = ticker.history(period="5d")
+# print(type(historical_data))
 # info = ticker.info
 # lastDivValue = info['lastDividendValue']
 # lastDivDate= info['lastDividendDate']
-# divids = ticker.get_dividends()
+divids = ticker.get_dividends()
 # Display a summary of the fetched data
 # print(historical_data[['Open', 'High', 'Low', 'Close', 'Volume']])
 
@@ -16,11 +16,23 @@ print(type(historical_data))
 
 # print(f'{lastDivDate=} {lastDivValue=}')
 # print(f'{info=}')
-# print(f'{divids=}')
+print(f'{divids=}')
+print(f'{type(divids)}')
+
+print(f'len: {len(divids)}')
+
+last = divids.iloc[-1]
+print(f'{last}')
+print(f'{type(last)}')
+
+indexes = divids.keys()
+ind = indexes[-1]
+print(f'{ind}')
+
 
 # index = len(historical_data)-2
-serie = historical_data.iloc[-2]
+# serie = historical_data.iloc[-2]
 # print(serie.name, type(serie.name))
-close = serie[['Close']]
-print(f'close: {close} {type(close)}')
-print(f'close: {close.iloc[0]} {type(close.iloc[0])}')
+# close = serie[['Close']]
+# print(f'close: {close} {type(close)}')
+# print(f'close: {close.iloc[0]} {type(close.iloc[0])}')
