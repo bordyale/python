@@ -50,19 +50,21 @@ def buildmess(mydb, sql) :
                 serie = his_dt.iloc[-2]
             close_date = serie.name.to_pydatetime().replace(tzinfo=None)
             close_price = serie[['Close']].iloc[0]
+            cp = Decimal.from_float(close_price)
+            cpr = round(cp, 3)
             if last_price:
                 last_date = last_price[0]
                 print(f'{last_date=} {close_date=} {close_price=}')
                 if close_date > last_date:
                     next_id = get_next_seq_id('BfinPrice', mydb, sql)
                     query = sql.bfin_price_insert
-                    args = (next_id, prod_id, close_date, close_price, datetime.today(), datetime.today())
+                    args = (next_id, prod_id, close_date, cpr, datetime.today(), datetime.today())
                     mycursor.execute(query, args)
                     mydb.commit()
             else:
                 next_id = get_next_seq_id('BfinPrice', mydb, sql)
                 query = sql.bfin_price_insert
-                args = (next_id, prod_id, close_date, close_price, datetime.today(), datetime.today())
+                args = (next_id, prod_id, close_date, cpr, datetime.today(), datetime.today())
                 mycursor.execute(query, args)
                 mydb.commit()
 

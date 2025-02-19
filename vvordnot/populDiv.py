@@ -48,6 +48,8 @@ def buildmess(mydb, sql) :
             if (len(divids) == 0):
                 continue
             api_div = divids.iloc[-1]
+            ddiv = Decimal.from_float(api_div)
+            ddivr = round(ddiv, 3)
             indexes = divids.keys()
             api_div_date = indexes[-1].to_pydatetime().replace(tzinfo=None)
             if last_div:
@@ -56,13 +58,13 @@ def buildmess(mydb, sql) :
                 if api_div_date > last_date:
                     next_id = get_next_seq_id('BfinDividend', mydb, sql)
                     query = sql.bfin_div_insert
-                    args = (next_id, prod_id, api_div_date, api_div, prods_div_freq[prod_id], datetime.today(), datetime.today())
+                    args = (next_id, prod_id, api_div_date, ddivr, prods_div_freq[prod_id], datetime.today(), datetime.today())
                     mycursor.execute(query, args)
                     mydb.commit()
             else:
                 next_id = get_next_seq_id('BfinDividend', mydb, sql)
                 query = sql.bfin_div_insert
-                args = (next_id, prod_id, api_div_date, api_div, prods_div_freq[prod_id], datetime.today(), datetime.today())
+                args = (next_id, prod_id, api_div_date, ddivr, prods_div_freq[prod_id], datetime.today(), datetime.today())
                 mycursor.execute(query, args)
                 mydb.commit()
 def main():

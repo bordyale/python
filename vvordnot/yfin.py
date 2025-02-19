@@ -1,11 +1,26 @@
 import yfinance as yf
-ticker = yf.Ticker("SXR8.DE")
+import numpy as np
+from decimal import *
+
+
+
+a = 5.9975
+print(f'{a=}')
+b = np.float64(a)
+print(f'{b=}')
+c = Decimal.from_float(b)
+print(f'{c=}')
+d = round(c,3)
+print(f'{d=}')
+
+
+# ticker = yf.Ticker("SXR8.DE")
 # historical_data = ticker.history(period="5d")
 # print(type(historical_data))
 # info = ticker.info
 # lastDivValue = info['lastDividendValue']
 # lastDivDate= info['lastDividendDate']
-divids = ticker.get_dividends()
+# divids = ticker.get_dividends()
 # Display a summary of the fetched data
 # print(historical_data[['Open', 'High', 'Low', 'Close', 'Volume']])
 
@@ -16,18 +31,18 @@ divids = ticker.get_dividends()
 
 # print(f'{lastDivDate=} {lastDivValue=}')
 # print(f'{info=}')
-print(f'{divids=}')
-print(f'{type(divids)}')
+# print(f'{divids=}')
+# print(f'{type(divids)}')
 
-print(f'len: {len(divids)}')
+# print(f'len: {len(divids)}')
 
-last = divids.iloc[-1]
-print(f'{last}')
-print(f'{type(last)}')
+# last = divids.iloc[-1]
+# print(f'{last}')
+# print(f'{type(last)}')
 
-indexes = divids.keys()
-ind = indexes[-1]
-print(f'{ind}')
+# indexes = divids.keys()
+# ind = indexes[-1]
+# print(f'{ind}')
 
 
 # index = len(historical_data)-2
