@@ -6,6 +6,7 @@ import requests
 import mysql.connector
 from lib.functions import Sql_query, sendemailHtml, get_next_seq_id
 from lib.loadprops import *
+from datetime import datetime
 import os
 
 class Currency_convertor:
@@ -33,7 +34,7 @@ class Currency_convertor:
             amount = round(amount * self.rates[uom_id_to], 2)
             print(f'{amount=} {type(amount)}')
             query = sql.uom_conversion_update
-            args = (amount, uom_id, uom_id_to)
+            args = (amount, datetime.today(), uom_id, uom_id_to)
             mycursor.execute(query, args)
             mydb.commit()
 
