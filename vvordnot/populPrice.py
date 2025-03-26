@@ -47,7 +47,7 @@ def buildmess(mydb, sql) :
                 continue
             serie = his_dt.iloc[0]
             if lenght > 2:
-                serie = his_dt.iloc[-2]
+                serie = his_dt.iloc[-1]
             close_date = serie.name.to_pydatetime().replace(tzinfo=None)
             close_price = serie[['Close']].iloc[0]
             cp = Decimal.from_float(close_price)
