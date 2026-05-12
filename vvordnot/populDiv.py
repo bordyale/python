@@ -54,8 +54,10 @@ def buildmess(mydb, sql) :
             api_div_date = indexes[-1].to_pydatetime().replace(tzinfo=None)
             if last_div:
                 last_date = last_div[0]
-                print(f'{last_date=} {api_div_date=} {api_div=}')
-                if api_div_date > last_date:
+                api_div_date_to_check = api_div_date - timedelta(days=2)
+                print(f'{last_date=} {api_div_date=} {api_div_date_to_check=}')
+                if api_div_date_to_check > last_date:
+                    #print(f'match!!')
                     next_id = get_next_seq_id('BfinDividend', mydb, sql)
                     query = sql.bfin_div_insert
                     args = (next_id, prod_id, api_div_date, ddivr, prods_div_freq[prod_id], datetime.today(), datetime.today())
