@@ -46,7 +46,9 @@ def buildmess(mydb, sql) :
             if (lenght == 0):
                 continue
             serie = his_dt.iloc[0]
-            if lenght > 2:
+            if lenght >= 2:
+                serie = his_dt.iloc[-2]
+            elif lenght == 1:
                 serie = his_dt.iloc[-1]
             close_date = serie.name.to_pydatetime().replace(tzinfo=None)
             close_price = serie[['Close']].iloc[0]
