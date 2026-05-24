@@ -1,0 +1,411 @@
+{
+  "_note": "Esposizione geografica per ticker. Chiavi: NA=Nord America, EU=Europa, AP=Asia Pacific, EM=Mercati Emergenti, GL=Globale. Modificabile manualmente. Lo script aggiunge automaticamente nuovi ticker.",
+  "_isin_geo": {
+    "_note": "Mappa ISIN→geo per ETF, usata per fetch automatico da JustETF",
+    "IE00B1FZS350": {
+      "NA": 63,
+      "AP": 22,
+      "EU": 15
+    },
+    "IE00B8KGV557": {
+      "NA": 63,
+      "AP": 22,
+      "EU": 15
+    },
+    "IE00B4L5Y983": {
+      "NA": 65,
+      "EU": 20,
+      "AP": 10,
+      "GL": 5
+    },
+    "IE00B3RBWM25": {
+      "NA": 60,
+      "EU": 20,
+      "AP": 15,
+      "GL": 5
+    },
+    "IE00BK5BQT80": {
+      "NA": 60,
+      "EU": 20,
+      "AP": 15,
+      "GL": 5
+    },
+    "IE00B8GKDB10": {
+      "NA": 55,
+      "EU": 25,
+      "AP": 15,
+      "GL": 5
+    },
+    "IE00B945VV12": {
+      "EU": 100
+    },
+    "IE00B1TXHL60": {
+      "EU": 100
+    },
+    "IE00B5BMR087": {
+      "EU": 100
+    },
+    "IE00B02KXL92": {
+      "EU": 100
+    },
+    "IE00B0M63177": {
+      "EU": 100
+    },
+    "IE00B14X4M10": {
+      "EU": 100
+    },
+    "IE00B3F81R35": {
+      "EU": 100
+    },
+    "LU1829218749": {
+      "EU": 100
+    },
+    "IE00BF4RFH31": {
+      "EU": 100
+    },
+    "IE00B42W3S00": {
+      "EU": 100
+    },
+    "IE00BD1F4L37": {
+      "NA": 100
+    },
+    "IE00BYYHSQ67": {
+      "NA": 100
+    },
+    "IE00BLNMYC90": {
+      "NA": 100
+    },
+    "IE00BJ5JP105": {
+      "EU": 45,
+      "AP": 30,
+      "GL": 25
+    },
+    "IE00BF2B0K52": {
+      "NA": 40,
+      "EU": 35,
+      "AP": 15,
+      "GL": 10
+    },
+    "IE0007G78AC4": {
+      "NA": 50,
+      "EU": 30,
+      "AP": 15,
+      "GL": 5
+    },
+    "IE00B9CQXS71": {
+      "NA": 63,
+      "EU": 20,
+      "AP": 12,
+      "GL": 5
+    },
+    "IE00BG0J4957": {
+      "NA": 60,
+      "EU": 25,
+      "AP": 10,
+      "GL": 5
+    },
+    "IE00BYQCZX68": {
+      "EU": 55,
+      "AP": 30,
+      "GL": 15
+    },
+    "IE00BYXVGX24": {
+      "NA": 50,
+      "EU": 30,
+      "GL": 20
+    },
+    "IE00BYXVGY31": {
+      "NA": 50,
+      "EU": 30,
+      "GL": 20
+    },
+    "IE0002XZSHO1": {
+      "EM": 100
+    }
+  },
+  "_country_map": {
+    "United States": "NA",
+    "Canada": "NA",
+    "Mexico": "NA",
+    "United Kingdom": "EU",
+    "Germany": "EU",
+    "France": "EU",
+    "Italy": "EU",
+    "Spain": "EU",
+    "Netherlands": "EU",
+    "Switzerland": "EU",
+    "Sweden": "EU",
+    "Denmark": "EU",
+    "Norway": "EU",
+    "Finland": "EU",
+    "Belgium": "EU",
+    "Austria": "EU",
+    "Portugal": "EU",
+    "Ireland": "EU",
+    "Luxembourg": "EU",
+    "Poland": "EU",
+    "Japan": "AP",
+    "Australia": "AP",
+    "South Korea": "AP",
+    "Hong Kong": "AP",
+    "Singapore": "AP",
+    "New Zealand": "AP",
+    "China": "EM",
+    "India": "EM",
+    "Brazil": "EM",
+    "Taiwan": "EM",
+    "South Africa": "EM",
+    "Russia": "EM",
+    "Saudi Arabia": "EM",
+    "Indonesia": "EM",
+    "Thailand": "EM",
+    "Malaysia": "EM",
+    "Turkey": "EM"
+  },
+  "tickers": {
+    "ABBV": {
+      "NA": 100
+    },
+    "MO": {
+      "NA": 100
+    },
+    "AAPL": {
+      "NA": 100
+    },
+    "BTI": {
+      "NA": 40,
+      "EU": 40,
+      "GL": 20
+    },
+    "CP": {
+      "NA": 100
+    },
+    "CVX": {
+      "NA": 80,
+      "GL": 20
+    },
+    "XOM": {
+      "NA": 80,
+      "GL": 20
+    },
+    "INTU": {
+      "NA": 100
+    },
+    "JNJ": {
+      "NA": 55,
+      "EU": 25,
+      "GL": 20
+    },
+    "PBA": {
+      "NA": 100
+    },
+    "O": {
+      "NA": 85,
+      "EU": 15
+    },
+    "SU": {
+      "NA": 100
+    },
+    "BNS": {
+      "NA": 65,
+      "GL": 35
+    },
+    "TD": {
+      "NA": 100
+    },
+    "UNP": {
+      "NA": 100
+    },
+    "VICI": {
+      "NA": 100
+    },
+    "DIVO": {
+      "NA": 100
+    },
+    "QDVO": {
+      "NA": 100
+    },
+    "FUSD.DE": {
+      "NA": 100
+    },
+    "IQQA.DE": {
+      "NA": 100
+    },
+    "JEQP.DE": {
+      "NA": 100
+    },
+    "SPHD": {
+      "NA": 100
+    },
+    "SCHD": {
+      "NA": 100
+    },
+    "SPYD.DE": {
+      "NA": 100
+    },
+    "VYM": {
+      "NA": 100
+    },
+    "G.MI": {
+      "EU": 75,
+      "GL": 25
+    },
+    "BAYN.DE": {
+      "EU": 40,
+      "NA": 35,
+      "GL": 25
+    },
+    "BSN.DE": {
+      "EU": 45,
+      "NA": 25,
+      "GL": 30
+    },
+    "ENI.MI": {
+      "EU": 35,
+      "GL": 65
+    },
+    "ISP.MI": {
+      "EU": 90,
+      "GL": 10
+    },
+    "KPR.F": {
+      "EU": 100
+    },
+    "SAN.PA": {
+      "EU": 45,
+      "NA": 20,
+      "GL": 35
+    },
+    "SRG.MI": {
+      "EU": 100
+    },
+    "UCG.MI": {
+      "EU": 90,
+      "GL": 10
+    },
+    "UNA.AS": {
+      "EU": 30,
+      "NA": 20,
+      "AP": 20,
+      "GL": 30
+    },
+    "VNA.DE": {
+      "EU": 100
+    },
+    "ZV.MI": {
+      "EU": 80,
+      "GL": 20
+    },
+    "FLXD.DE": {
+      "EU": 100
+    },
+    "IMAE.AS": {
+      "EU": 100
+    },
+    "IQQP.DE": {
+      "EU": 100
+    },
+    "IUKD.MI": {
+      "EU": 100
+    },
+    "EWSX.L": {
+      "EU": 100
+    },
+    "EXSA.DE": {
+      "EU": 100
+    },
+    "EXSH.DE": {
+      "EU": 100
+    },
+    "ISPA.DE": {
+      "EU": 100
+    },
+    "SPYW.DE": {
+      "EU": 100
+    },
+    "VGEU.DE": {
+      "EU": 100
+    },
+    "IQQ6.DE": {
+      "NA": 63,
+      "AP": 22,
+      "EU": 15
+    },
+    "HPRD.L": {
+      "NA": 63,
+      "AP": 22,
+      "EU": 15
+    },
+    "EHDL.DE": {
+      "EM": 100
+    },
+    "IDVO": {
+      "EU": 55,
+      "AP": 30,
+      "GL": 15
+    },
+    "FGEQ.DE": {
+      "NA": 50,
+      "EU": 30,
+      "GL": 20
+    },
+    "FGQP.L": {
+      "NA": 50,
+      "EU": 30,
+      "GL": 20
+    },
+    "EUNL.DE": {
+      "NA": 65,
+      "EU": 20,
+      "AP": 10,
+      "GL": 5
+    },
+    "QDVW.DE": {
+      "NA": 60,
+      "EU": 25,
+      "AP": 10,
+      "GL": 5
+    },
+    "JGPI.DE": {
+      "NA": 60,
+      "EU": 20,
+      "AP": 15,
+      "GL": 5
+    },
+    "SCHY": {
+      "EU": 45,
+      "AP": 30,
+      "GL": 25
+    },
+    "ZPRG.DE": {
+      "NA": 40,
+      "EU": 35,
+      "AP": 15,
+      "GL": 10
+    },
+    "TDIV.AS": {
+      "NA": 50,
+      "EU": 30,
+      "AP": 15,
+      "GL": 5
+    },
+    "VHYL.AS": {
+      "NA": 55,
+      "EU": 25,
+      "AP": 15,
+      "GL": 5
+    },
+    "VWRD.L": {
+      "NA": 60,
+      "EU": 20,
+      "AP": 15,
+      "GL": 5
+    },
+    "VGWL.DE": {
+      "NA": 60,
+      "EU": 20,
+      "AP": 15,
+      "GL": 5
+    }
+  }
+}

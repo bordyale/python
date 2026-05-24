@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f7f6f3; --bg3: #f0ede8;
+    --text: #1a1a1a; --text2: #5f5e5a; --text3: #888780;
+    --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+    --blue: #378ADD; --green: #1D9E75; --purple: #7F77DD;
+    --amber: #EF9F27; --coral: #D85A30; --gray: #888780;
+    --radius: 10px; --radius-sm: 6px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#1c1c1e; --bg2:#2c2c2e; --bg3:#3a3a3c;
+      --text:#f5f5f5; --text2:#aeaeb2; --text3:#636366;
+      --border:rgba(255,255,255,0.1); --border2:rgba(255,255,255,0.18);
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;line-height:1.5}
+  .page{max-width:1200px;margin:0 auto;padding:24px 20px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:8px}
+  .topbar h1{font-size:22px;font-weight:500}
+  .topbar .meta{font-size:12px;color:var(--text3)}
+  .btn-export{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s}
+  .btn-export:hover{background:var(--bg2);color:var(--text)}
+  .btn-pdf{border-color:#D85A30;color:#D85A30}
+  .btn-pdf:hover{background:#FDF0EC;color:#A83A18}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+  .met{background:var(--bg);border-radius:var(--radius);padding:16px;border:0.5px solid var(--border)}
+  .met .lbl{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+  .met .val{font-size:24px;font-weight:500;color:var(--text)}
+  .met .sub{font-size:11px;color:var(--text3);margin-top:2px}
+  .card{background:var(--bg);border-radius:var(--radius);border:0.5px solid var(--border);padding:20px;box-shadow:var(--shadow)}
+  .card-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:14px;text-transform:uppercase;letter-spacing:.3px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+  .legend span{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
+  .dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+  /* table */
+  .tbl-wrap{overflow-x:auto;border-radius:var(--radius);border:0.5px solid var(--border)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{padding:9px 10px;font-size:11px;font-weight:500;color:var(--text3);border-bottom:0.5px solid var(--border);text-align:left;white-space:nowrap;background:var(--bg2);position:sticky;top:0;cursor:pointer;user-select:none}
+  thead th:hover{color:var(--text)}
+  thead th.sort-asc::after{content:' ↑'}
+  thead th.sort-desc::after{content:' ↓'}
+  tbody tr{border-bottom:0.5px solid var(--border);transition:background .1s}
+  tbody tr:hover{background:var(--bg2)}
+  tbody td{padding:8px 10px;color:var(--text);white-space:nowrap}
+  .pos{color:#1D9E75}
+  .neg{color:#D85A30}
+  .badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:500}
+  .b-usd{background:#E6F1FB;color:#0C447C}
+  .b-eur{background:#EAF3DE;color:#27500A}
+  /* geo mini-bar */
+  .geobar{display:flex;height:6px;border-radius:3px;overflow:hidden;min-width:80px}
+  /* filters */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+  .filters input,.filters select{height:32px;padding:0 10px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px}
+  .filters input{width:160px}
+  /* tabs */
+  .tabs{display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:16px}
+  .tab{padding:8px 16px;font-size:13px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-0.5px}
+  .tab.active{color:var(--text);border-bottom:2px solid var(--text);font-weight:500}
+  /* loading */
+  #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:16px}
+  .spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .error-box{background:#FCEBEB;color:#A32D2D;border-radius:var(--radius);padding:16px;margin:24px 0}
+  #app{display:none}
+  .section{margin-bottom:20px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p style="color:var(--text2)">Caricamento <code>data/portfolio_data.json</code>...</p>
+</div>
+
+<div id="err-box" class="error-box" style="display:none"></div>
+
+<div id="app">
+  <div class="topbar">
+    <div>
+      <h1>Portfolio Report</h1>
+      <span class="meta" id="meta-bar">—</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn-export" onclick="exportExcel()" title="Esporta in Excel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        Excel
+      </button>
+      <button class="btn-export btn-pdf" onclick="exportPDF()" title="Esporta in PDF">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="metrics" id="metrics"></div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('overview',this)">Panoramica</div>
+    <div class="tab" onclick="showTab('geo',this)">Esposizione geografica</div>
+    <div class="tab" onclick="showTab('dividends',this)">Dividendi</div>
+    <div class="tab" onclick="showTab('table',this)">Tabella posizioni</div>
+    <div class="tab" onclick="showTab('broker',this)">Broker</div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="tab-overview">
+    <div class="row2">
+      <div class="card">
+        <div class="card-title">Allocazione per valuta</div>
+        <div class="legend" id="leg-cur"></div>
+        <div style="position:relative;height:220px"><canvas id="c-cur" role="img" aria-label="Donut allocazione valuta">Allocazione USD vs EUR.</canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Top 10 posizioni per valore</div>
+        <div style="position:relative;height:220px"><canvas id="c-top10" role="img" aria-label="Top 10 posizioni per valore">Top 10 posizioni.</canvas></div>
+      </div>
+    </div>
+    <div class="card section">
+      <div class="card-title">Distribuzione valore — tutte le posizioni</div>
+      <div id="c-all-wrap" style="position:relative"><canvas id="c-all" role="img" aria-label="Valore tutte le posizioni">Tutte le posizioni.</canvas></div>
+    </div>
+  </div>
+
+  <!-- GEO -->
+  <div id="tab-geo" style="display:none">
+    <div class="row2">
+      <div class="card">
+        <div class="card-title">Esposizione geografica ponderata</div>
+        <div class="legend" id="leg-geo"></div>
+        <div style="position:relative;height:250px"><canvas id="c-geo" role="img" aria-label="Donut esposizione geografica">Esposizione geografica.</canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Per area</div>
+        <div style="position:relative;height:250px"><canvas id="c-geo-bar" role="img" aria-label="Bar esposizione geografica">Bar geografico.</canvas></div>
+      </div>
+    </div>
+    <div class="card section">
+      <div class="card-title">Dettaglio per titolo</div>
+      <div class="tbl-wrap" style="max-height:420px;overflow-y:auto">
+        <table>
+          <thead><tr>
+            <th style="width:90px">Simbolo</th>
+            <th>Esposizione geografica</th>
+            <th style="width:200px">Descrizione</th>
+          </tr></thead>
+          <tbody id="geo-tbl"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIVIDENDI -->
+  <div id="tab-dividends" style="display:none">
+    <div style="margin-bottom:12px">
+      <div class="card" style="padding:14px 18px">
+        <div class="card-title" style="margin-bottom:10px">Trailing Twelve Months (TTM) — effettivi</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div><div class="lbl" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">USD</div><div style="font-size:18px;font-weight:500" id="d-ttm-usd">—</div></div>
+          <div><div class="lbl" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">EUR</div><div style="font-size:18px;font-weight:500" id="d-ttm-eur">—</div></div>
+          <div><div class="lbl" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">Yield TTM</div><div style="font-size:18px;font-weight:500" id="d-ttm-yield">—</div></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="row2">
+      <div class="card">
+        <div class="card-title">Top 10 — Div. TTM (USD)</div>
+        <div style="position:relative;height:260px"><canvas id="c-div-top-ttm" role="img" aria-label="Top 10 dividendi TTM">Top 10 dividendi TTM.</canvas></div>
+      </div>
+
+    </div>
+    <div class="card section">
+      <div class="card-title">Dividendi per posizione</div>
+      <div class="tbl-wrap" style="max-height:420px;overflow-y:auto">
+        <table>
+          <thead><tr>
+            <th>Simbolo</th><th>Val.</th>
+            <th style="text-align:right">Qtà</th>
+            <th style="text-align:right">Div/az TTM</th>
+            <th style="text-align:right">Div tot. TTM</th>
+            <th style="text-align:right">Yield TTM</th>
+
+          </tr></thead>
+          <tbody id="div-tbl"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABELLA POSIZIONI -->
+  <div id="tab-table" style="display:none">
+    <div class="filters">
+      <input type="text" id="search" placeholder="Filtra per qualsiasi testo (simbolo, nome, broker, valuta…)" oninput="renderTable()" style="width:320px">
+      <select id="f-broker" onchange="renderTable()" style="min-width:140px">
+        <option value="">Tutti i broker</option>
+      </select>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead id="main-thead">
+          <tr>
+            <th data-col="symbol"            onclick="sortBy('symbol')"            style="width:90px;cursor:pointer">Simbolo</th>
+            <th data-col="name"              onclick="sortBy('name')"              style="width:180px;cursor:pointer">Nome</th>
+            <th                                                                     style="width:48px">Val.</th>
+            <th data-col="qty"               onclick="sortBy('qty')"               style="text-align:right;width:60px;cursor:pointer">Qtà</th>
+            <th data-col="avg_price"         onclick="sortBy('avg_price')"         style="text-align:right;width:72px;cursor:pointer">Prezzo Acq.</th>
+            <th data-col="prev_close"        onclick="sortBy('prev_close')"        style="text-align:right;width:90px;cursor:pointer">Ult. Chiusura</th>
+            <th data-col="perf_pct"          onclick="sortBy('perf_pct')"          style="text-align:right;width:65px;cursor:pointer">%Var</th>
+            <th data-col="value_usd"         onclick="sortBy('value_usd')"         style="text-align:right;width:85px;cursor:pointer">Valore $</th>
+            <th data-col="port_pct"          onclick="sortBy('port_pct')"          style="text-align:right;width:62px;cursor:pointer">% port.</th>
+            <th data-col="div_ttm"           onclick="sortBy('div_ttm')"           style="text-align:right;width:72px;cursor:pointer">TTM/az</th>
+            <th data-col="div_ttm_total_usd" onclick="sortBy('div_ttm_total_usd')" style="text-align:right;width:75px;cursor:pointer">Div TTM$</th>
+            <th data-col="yield_ttm_pct"     onclick="sortBy('yield_ttm_pct')"     style="text-align:right;width:68px;cursor:pointer">Yld TTM</th>
+            <th                                                                     style="text-align:left;width:120px">Broker</th>
+          </tr>
+        </thead>
+        <tbody id="main-tbl"></tbody>
+      </table>
+    </div>
+    <!-- Totali righe filtrate -->
+    <div id="tbl-totals" style="display:none;margin-top:8px;padding:8px 12px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border);font-size:12px;color:var(--text2)">
+      <span style="font-weight:500;color:var(--text)">Totali righe filtrate:</span>
+      <span style="margin-left:16px">Valore $: <strong id="tot-value" style="color:var(--text)">—</strong></span>
+      <span style="margin-left:16px">Div TTM$: <strong id="tot-div" style="color:var(--text)">—</strong></span>
+      <span style="margin-left:16px;color:var(--text3)" id="tot-count"></span>
+    </div>
+  </div>
+
+  <!-- BROKER -->
+  <div id="tab-broker" style="display:none">
+    <div class="row2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-title">Allocazione per broker</div>
+        <div class="legend" id="leg-broker"></div>
+        <div style="position:relative;height:260px"><canvas id="c-broker-donut" role="img" aria-label="Donut broker" style="width:100%;height:260px">Allocazione broker.</canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Valore per broker</div>
+        <div style="position:relative;height:260px"><canvas id="c-broker-bar" role="img" aria-label="Bar broker" style="width:100%;height:260px">Bar broker.</canvas></div>
+      </div>
+    </div>
+    <div class="card section">
+      <div class="card-title">Dettaglio per broker</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead id="broker-thead">
+            <tr>
+              <th data-col="name"     onclick="sortBroker('name')"     style="width:140px;cursor:pointer">Broker</th>
+              <th data-col="valueUSD" onclick="sortBroker('valueUSD')" style="text-align:right;cursor:pointer">Valore USD</th>
+              <th data-col="valueEUR" onclick="sortBroker('valueEUR')" style="text-align:right;cursor:pointer">Valore EUR</th>
+              <th data-col="pct"      onclick="sortBroker('pct')"      style="text-align:right;cursor:pointer">% portafoglio</th>
+              <th data-col="count"    onclick="sortBroker('count')"    style="text-align:right;cursor:pointer">N° posizioni</th>
+              <th data-col="divTTM"   onclick="sortBroker('divTTM')"   style="text-align:right;cursor:pointer">Div TTM USD</th>
+              <th data-col="yield"    onclick="sortBroker('yield')"    style="text-align:right;cursor:pointer">Yield TTM</th>
+            </tr>
+          </thead>
+          <tbody id="broker-tbl"></tbody>
+          <tfoot id="broker-tbl-foot" style="font-weight:600;border-top:1.5px solid var(--border2)"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- .page -->
+
+<script>
+const GEO_LABELS = {NA:'Nord America', EU:'Europa', AP:'Asia Pacific', EM:'Mercati Em.', GL:'Globale'};
+const GEO_COLORS = {'Nord America':'#378ADD','Europa':'#1D9E75','Asia Pacific':'#EF9F27','Mercati Em.':'#D85A30','Globale':'#7F77DD'};
+const GEO_DESC = {
+  ABBV:'AbbVie – farmaceutico USA', MO:'Altria – tabacco USA', AAPL:'Apple – USA',
+  BTI:'BAT – tabacco, revenue globale', CP:'Canadian Pacific – ferrovie Canada',
+  CVX:'Chevron – energia USA', XOM:'ExxonMobil – energia USA', INTU:'Intuit – software USA',
+  JNJ:'J&J – farmaceutico, globale', PBA:'Pembina Pipeline – Canada',
+  O:'Realty Income – REIT USA/EU', SU:'Suncor – energia Canada',
+  BNS:'Scotiabank – banca Canada/LatAm', TD:'TD Bank – banca Canada/USA',
+  UNP:'Union Pacific – ferrovie USA', VICI:'VICI Properties – REIT USA',
+  'G.MI':'Generali – assicurativo IT/EU', 'BAYN.DE':'Bayer – farmac. DE, globale',
+  'BSN.DE':'Danone – alimentare FR, globale', 'ENI.MI':'Eni – energia IT/Africa',
+  'ISP.MI':'Intesa Sanpaolo – banca IT', 'KPR.F':'Klépierre – REIT centri comm. EU',
+  'SAN.PA':'Santander – banca ES/LatAm', 'SRG.MI':'Snam Rete Gas – utilities IT',
+  'UCG.MI':'UniCredit – banca IT/EU', 'UNA.AS':'Unilever – beni consumo globale',
+  'VNA.DE':'Vonovia – immobiliare DE', 'ZV.MI':'Zignago Vetro – IT/EU',
+  DIVO:'ETF WisdomTree – USA large cap div', QDVO:'ETF – USA covered call dividend',
+  'FUSD.DE':'ETF Franklin – USA quality income', 'IQQA.DE':'ETF iShares – MSCI USA',
+  'JEQP.DE':'ETF JPM – Nasdaq premium income', SPHD:'ETF – S&P500 high div low vol',
+  SCHD:'ETF Schwab – US dividend equity', 'SPYD.DE':'ETF SPDR – S&P US div aristocrats',
+  VYM:'ETF Vanguard – high div yield USA', 'FLXD.DE':'ETF Franklin – EU quality div',
+  'IMAE.AS':'ETF iShares – MSCI Europe', 'IQQP.DE':'ETF iShares – MSCI Europe',
+  'IUKD.MI':'ETF iShares – UK dividend', 'EWSX.L':'ETF – STOXX EU select div',
+  'EXSA.DE':'ETF iShares – STOXX EU 600', 'EXSH.DE':'ETF iShares – STOXX EU high div',
+  'ISPA.DE':'ETF iShares – MSCI EU high div', 'SPYW.DE':'ETF SPDR – MSCI EU dividend',
+  'VGEU.DE':'ETF Vanguard – FTSE Dev Europe',
+  'IQQ6.DE':'ETF iShares – FTSE EPRA/NAREIT Dev (real estate globale)',
+  'HPRD.L':'ETF HSBC – FTSE EPRA/NAREIT Dev (real estate globale)',
+  'EHDL.DE':'ETF iShares – Emerging Markets high div',
+  IDVO:'ETF Amplify – intl div (EU+Asia)', 'FGEQ.DE':'ETF Franklin – global quality income',
+  'FGQP.L':'ETF Franklin – global quality income USD hdg',
+  'EUNL.DE':'ETF iShares – MSCI World', 'QDVW.DE':'ETF WisdomTree – MSCI World quality div',
+  'JGPI.DE':'ETF JPM – global equity premium income',
+  SCHY:'ETF Schwab – intl high div ex-US', 'ZPRG.DE':'ETF SPDR – global div aristocrats',
+  'TDIV.AS':'ETF VanEck – developed markets div', 'VHYL.AS':'ETF Vanguard – FTSE All-World high div',
+  'VWRD.L':'ETF Vanguard – FTSE All-World', 'VGWL.DE':'ETF Vanguard – FTSE All-World',
+};
+
+let DATA = null;
+let chartsBuilt = {};
+
+function fmt(n, dec=0) {
+  if (n == null) return '—';
+  return n.toLocaleString('it-IT', {minimumFractionDigits: dec, maximumFractionDigits: dec});
+}
+function fmtUSD(n) { return n == null ? '—' : '$' + fmt(n, 0); }
+function fmtEUR(n) {
+  // converte da USD a EUR usando il tasso caricato dal JSON, mostra simbolo €
+  if (n == null || !DATA) return '—';
+  return '€' + fmt(n / DATA.eur_usd, 0);
+}
+function fmtPct(n) { return n == null ? '—' : (n > 0 ? '+' : '') + fmt(n, 2) + '%'; }
+
+async function loadData() {
+  try {
+    const r = await fetch('data/portfolio_data.json');
+    if (!r.ok) throw new Error(`HTTP ${r.status} — assicurati di aver eseguito fetch_data.py`);
+    DATA = await r.json();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    render();
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    const eb = document.getElementById('err-box');
+    eb.style.display = 'block';
+    eb.innerHTML = `<strong>Impossibile caricare i dati</strong><br>${e.message}<br><br>
+      Esegui prima: <code>pip install yfinance &amp;&amp; python fetch_data.py</code><br>
+      poi apri questo file con un server locale: <code>python -m http.server 8080</code>`;
+  }
+}
+
+function render() {
+  const p = DATA.portfolio;
+  const totalUSD    = DATA.total_value_usd;
+  const totalDivTTM = DATA.total_div_ttm_usd || DATA.total_div_usd || 0;
+  const totalDivFwd = DATA.total_div_fwd_usd || 0;
+  const eur_usd     = DATA.eur_usd;
+  const yieldTTM    = totalUSD > 0 ? (totalDivTTM / totalUSD * 100).toFixed(2) : '—';
+  const priced      = p.filter(r => r.value_usd != null).length;
+
+  document.getElementById('meta-bar').textContent =
+    `Chiusura precedente · ${DATA.fetch_date} · EUR/USD ${eur_usd} · ${priced}/${p.length} prezzi`;
+
+  document.getElementById('metrics').innerHTML = `
+    <div class="met"><div class="lbl">Valore totale (USD)</div><div class="val">${fmtUSD(totalUSD)}</div><div class="sub">${priced}/${p.length} posizioni valorizzate</div></div>
+    <div class="met"><div class="lbl">Valore totale (EUR)</div><div class="val">${fmtEUR(totalUSD)}</div><div class="sub">cambio ${eur_usd}</div></div>
+    <div class="met"><div class="lbl">Valore totale (HUF)</div><div class="val" id="m-huf">—</div><div class="sub" id="m-huf-sub">recupero cambio…</div></div>
+    <div class="met"><div class="lbl">Div. TTM (USD)</div><div class="val">${fmtUSD(totalDivTTM)}</div><div class="sub">yield TTM: ${yieldTTM}%</div></div>
+    <div class="met"><div class="lbl">Div. TTM (EUR)</div><div class="val">${fmtEUR(totalDivTTM)}</div><div class="sub">ultimi 12 mesi effettivi</div></div>
+    <div class="met"><div class="lbl">Div. TTM (HUF)</div><div class="val" id="m-div-ttm-huf">—</div><div class="sub" id="m-div-ttm-huf-sub">recupero cambio…</div></div>
+`;
+
+  buildOverviewCharts();
+  loadHUF();
+  populateBrokerFilter();
+}
+
+function buildOverviewCharts() {
+  const p = DATA.portfolio;
+  const totalUSD = DATA.total_value_usd;
+
+  const usdV = p.filter(r=>r.currency==='USD'&&r.value_usd).reduce((s,r)=>s+r.value_usd,0);
+  const eurV = p.filter(r=>r.currency==='EUR'&&r.value_usd).reduce((s,r)=>s+r.value_usd,0);
+  document.getElementById('leg-cur').innerHTML =
+    `<span><span class="dot" style="background:#378ADD"></span>USD ${totalUSD>0?(usdV/totalUSD*100).toFixed(1):0}%</span>
+     <span><span class="dot" style="background:#1D9E75"></span>EUR ${totalUSD>0?(eurV/totalUSD*100).toFixed(1):0}%</span>`;
+  new Chart(document.getElementById('c-cur'), {
+    type:'doughnut',
+    data:{labels:['USD','EUR'],datasets:[{data:[usdV,eurV],backgroundColor:['#378ADD','#1D9E75'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}
+  });
+
+  const sorted = [...p].filter(r=>r.value_usd>0).sort((a,b)=>b.value_usd-a.value_usd);
+  const top10 = sorted.slice(0,10);
+  new Chart(document.getElementById('c-top10'), {
+    type:'bar', indexAxis:'y',
+    data:{labels:top10.map(r=>r.symbol),datasets:[{data:top10.map(r=>Math.round(r.value_usd)),
+      backgroundColor:top10.map(r=>r.currency==='USD'?'#378ADD':'#1D9E75'),borderWidth:0,borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{callback:v=>'$'+Math.round(v/1000)+'k'},grid:{color:'rgba(128,128,128,0.1)'}},
+              y:{ticks:{font:{size:11}},grid:{display:false}}}}
+  });
+
+  const h = Math.max(300, sorted.length * 20 + 60);
+  document.getElementById('c-all-wrap').style.height = h + 'px';
+  new Chart(document.getElementById('c-all'), {
+    type:'bar',
+    data:{labels:sorted.map(r=>r.symbol),datasets:[{data:sorted.map(r=>Math.round(r.value_usd)),
+      backgroundColor:sorted.map(r=>r.currency==='USD'?'#378ADD':'#1D9E75'),borderWidth:0,borderRadius:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:9},maxRotation:90,autoSkip:false},grid:{display:false}},
+              y:{ticks:{callback:v=>'$'+Math.round(v/1000)+'k'},grid:{color:'rgba(128,128,128,0.08)'}}}}
+  });
+}
+
+function buildGeoCharts() {
+  if (chartsBuilt.geo) return;
+  chartsBuilt.geo = true;
+  const p = DATA.portfolio;
+
+  const totals = {NA:0,EU:0,AP:0,EM:0,GL:0};
+  let totalWeight = 0;
+  p.forEach(r => {
+    const weight = r.value_usd || 0;
+    if (weight <= 0) return;
+    totalWeight += weight;
+    const geo = r.geo || {GL:100};
+    Object.entries(geo).forEach(([k,pct]) => { totals[k] = (totals[k]||0) + (pct/100) * weight; });
+  });
+  const areas = Object.keys(GEO_LABELS).filter(k=>totals[k]>0).sort((a,b)=>totals[b]-totals[a]);
+  const labels = areas.map(k=>GEO_LABELS[k]);
+  const vals   = areas.map(k=>totalWeight > 0 ? parseFloat((totals[k]/totalWeight*100).toFixed(1)) : 0);
+  const cols   = labels.map(l=>GEO_COLORS[l]);
+
+  document.getElementById('leg-geo').innerHTML = labels.map((l,i)=>
+    `<span><span class="dot" style="background:${cols[i]}"></span>${l} <strong>${vals[i].toFixed(1)}%</strong></span>`
+  ).join('');
+
+  new Chart(document.getElementById('c-geo'), {
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:cols,borderWidth:2,borderColor:'rgba(255,255,255,.6)'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>`  ${ctx.label}: ${ctx.formattedValue}%`}}}}
+  });
+  new Chart(document.getElementById('c-geo-bar'), {
+    type:'bar', indexAxis:'y',
+    data:{labels,datasets:[{data:vals,backgroundColor:cols,borderWidth:0,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>`  ${ctx.formattedValue}%`}}},
+      scales:{x:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(128,128,128,0.08)'}},y:{grid:{display:false}}}}
+  });
+
+  const tbody = document.getElementById('geo-tbl');
+  p.forEach(r => {
+    const geo = r.geo || {GL:100};
+    const entries = Object.entries(geo).sort((a,b)=>b[1]-a[1]);
+    const chips = entries.map(([k,pct])=>
+      `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--text2);margin-right:4px">
+        <span style="width:7px;height:7px;border-radius:2px;background:${GEO_COLORS[GEO_LABELS[k]]}"></span>
+        ${GEO_LABELS[k]} ${pct}%</span>`
+    ).join('');
+    const bar = `<div class="geobar" style="margin-top:4px">${entries.map(([k,pct])=>
+      `<span style="width:${pct}%;background:${GEO_COLORS[GEO_LABELS[k]]}"></span>`).join('')}</div>`;
+    tbody.innerHTML += `<tr>
+      <td style="font-weight:500">${r.symbol}</td>
+      <td>${chips}${bar}</td>
+      <td style="font-size:11px;color:var(--text3)">${GEO_DESC[r.symbol]||''}</td>
+    </tr>`;
+  });
+}
+
+function buildDivCharts() {
+  if (chartsBuilt.div) return;
+  chartsBuilt.div = true;
+  const p = DATA.portfolio;
+  const eur_usd     = DATA.eur_usd;
+  const totalDivTTM = DATA.total_div_ttm_usd || DATA.total_div_usd || 0;
+  const totalDivFwd = DATA.total_div_fwd_usd || 0;
+  const totalUSD    = DATA.total_value_usd;
+
+  document.getElementById('d-ttm-usd').textContent   = fmtUSD(totalDivTTM);
+  document.getElementById('d-ttm-eur').textContent   = fmtEUR(totalDivTTM);
+  document.getElementById('d-ttm-yield').textContent = totalUSD > 0 ? (totalDivTTM/totalUSD*100).toFixed(2)+'%' : '—';
+
+
+  // Top 10 TTM
+  const sortedTTM = [...p].filter(r=>(r.div_ttm_total_usd||r.div_total_usd||0)>0)
+    .sort((a,b)=>(b.div_ttm_total_usd||b.div_total_usd||0)-(a.div_ttm_total_usd||a.div_total_usd||0)).slice(0,10);
+  new Chart(document.getElementById('c-div-top-ttm'), {
+    type:'bar', indexAxis:'y',
+    data:{labels:sortedTTM.map(r=>r.symbol), datasets:[{
+      data:sortedTTM.map(r=>Math.round(r.div_ttm_total_usd||r.div_total_usd||0)),
+      backgroundColor:sortedTTM.map(r=>r.currency==='USD'?'#378ADD':'#1D9E75'),borderWidth:0,borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{callback:v=>'$'+v},grid:{color:'rgba(128,128,128,0.1)'}},y:{ticks:{font:{size:11}},grid:{display:false}}}}
+  });
+
+
+  // Tabella per posizione
+  const tbody = document.getElementById('div-tbl');
+  const allSorted = [...p].sort((a,b)=>(b.div_fwd_total_usd||0)-(a.div_fwd_total_usd||0));
+  allSorted.forEach(r => {
+    const divTTMLocal = r.div_ttm_total_local ?? r.div_total_local ?? 0;
+    const divTTMUsd   = r.div_ttm_total_usd  ?? r.div_total_usd  ?? 0;
+    const divFwdLocal = r.div_fwd_total_local ?? 0;
+    const divFwdUsd   = r.div_fwd_total_usd  ?? 0;
+    const sym_ttm     = r.currency === 'EUR' ? '€' : '$';
+      tbody.innerHTML += `<tr>
+      <td style="font-weight:500">${r.symbol}</td>
+      <td><span class="badge ${r.currency==='USD'?'b-usd':'b-eur'}">${r.currency}</span></td>
+      <td style="text-align:right">${fmt(r.qty,3)}</td>
+      <td style="text-align:right">${r.div_ttm ? fmt(r.div_ttm,4) : '—'}</td>
+      <td style="text-align:right">${divTTMLocal ? sym_ttm+fmt(divTTMLocal,2) : '—'}</td>
+      <td style="text-align:right${r.yield_ttm_pct>0?' color:#1D9E75':''}">${r.yield_ttm_pct ? r.yield_ttm_pct.toFixed(2)+'%' : '—'}</td>
+
+    </tr>`;
+  });
+}
+
+function populateBrokerFilter() {
+  const p = DATA.portfolio;
+  const sel = document.getElementById('f-broker');
+  const current = sel.value;
+
+  // Raccogli tutti i broker unici da tutte le posizioni
+  const brokerSet = new Set();
+  p.forEach(r => {
+    if (r.brokers) {
+      // I broker sono separati da ", " e possono contenere "(qty)"
+      r.brokers.split(',').forEach(b => {
+        const name = b.trim().replace(/\s*\(.*\)\s*$/, '').trim();
+        if (name) brokerSet.add(name);
+      });
+    }
+  });
+
+  // Ricostruisci le opzioni mantenendo la selezione corrente
+  const sorted = [...brokerSet].sort();
+  sel.innerHTML = '<option value="">Tutti i broker</option>'
+    + sorted.map(b => `<option value="${b}" ${b === current ? 'selected' : ''}>${b}</option>`).join('');
+}
+
+
+function renderTable() {
+  // 1. Recupero degli elementi reali presenti nell'HTML del report
+  const searchEl = document.getElementById('search');
+  const elBrk = document.getElementById('f-broker'); // ID corretto basato sulla riga 126 dell'HTML
+  const tbody = document.getElementById('main-tbl');
+  
+  if (!DATA || !tbody) return;
+
+  const searchText = searchEl ? searchEl.value.toLowerCase().trim() : '';
+  const brokerFilter = elBrk ? elBrk.value.trim() : '';
+  
+  // 2. Copia l'array iniziale per permettere l'ordinamento delle colonne
+  let rows = [...DATA.portfolio];
+
+  // 3. Applica il filtro di ricerca testuale globale (Simbolo, Nome, Valuta, Broker)
+  if (searchText) {
+    rows = rows.filter(r => {
+      return (r.symbol && r.symbol.toLowerCase().includes(searchText)) ||
+             (r.name && r.name.toLowerCase().includes(searchText)) ||
+             (r.currency && r.currency.toLowerCase().includes(searchText)) ||
+             (r.brokers && r.brokers.toLowerCase().includes(searchText));
+    });
+  }
+
+  // 4. Applica il filtro selettivo del Broker estraendo le quantità relative
+  if (brokerFilter) {
+    rows = rows.filter(r => r.brokers && r.brokers.toLowerCase().includes(brokerFilter.toLowerCase()));
+  }
+
+  // 5. Applica l'ordinamento impostato (funzione sortBy di riga 466)
+  rows.sort((a, b) => {
+    let va = a[sortCol];
+    let vb = b[sortCol];
+    
+    if (va == null) return sortDir;
+    if (vb == null) return -sortDir;
+    
+    if (typeof va === 'string') {
+      return sortDir * va.localeCompare(vb);
+    }
+    return sortDir * (va - vb);
+  });
+
+  let sumValUSD = 0;
+  let sumDivUSD = 0;
+
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:20px; color:var(--text3)">Nessuna posizione trovata con i filtri selezionati.</td></tr>`;
+    document.getElementById('tbl-totals').style.display = 'none';
+    return;
+  }
+
+  // 6. Generazione delle righe della tabella con ricalcolo proporzionale
+  tbody.innerHTML = rows.map(r => {
+    let displayQty = r.qty;
+    
+    // Se è selezionato un broker specifico, estrae la quantità numerica tra parentesi
+    if (brokerFilter && r.brokers) {
+      const regex = new RegExp(brokerFilter + '\\s*\\(\\s*([0-9.]+)\\s*\\)', 'i');
+      const match = r.brokers.match(regex);
+      if (match && match[1]) {
+        displayQty = parseFloat(match[1]);
+      }
+    }
+
+    // Calcolo del rapporto rispetto alla quantità totale originaria dell'asset
+    const ratio = r.qty > 0 ? (displayQty / r.qty) : 0;
+    const rowValueUSD = (r.value_usd || 0) * ratio;
+    const rowDivUSD   = (r.div_ttm_total_usd || r.div_total_usd || 0) * ratio;
+
+    sumValUSD += rowValueUSD;
+    sumDivUSD += rowDivUSD;
+
+    // Peso percentuale calcolato rispetto al valore totale del portafoglio complessivo
+    const pctPort = DATA.total_value_usd > 0 ? (rowValueUSD / DATA.total_value_usd * 100) : 0;
+
+    return `
+      <tr>
+        <td><strong>${r.symbol}</strong></td>
+        <td><small style="color:var(--text2)">${r.name || ''}</small></td>
+        <td><span class="badge ${r.currency==='USD'?'b-usd':'b-eur'}">${r.currency}</span></td>
+        <td style="text-align:right">${fmt(displayQty, 2)}</td>
+        <td style="text-align:right">${r.avg_price ? '$'+fmt(r.avg_price, 2) : '—'}</td>
+        <td style="text-align:right">${r.prev_close ? '$'+fmt(r.prev_close, 2) : '—'}</td>
+        <td style="text-align:right" class="${r.perf_pct >= 0 ? 'pos' : 'neg'}">${r.perf_pct >= 0 ? '+' : ''}${(r.perf_pct || 0).toFixed(2)}%</td>
+        <td style="text-align:right"><strong>$${fmt(rowValueUSD, 0)}</strong></td>
+        <td style="text-align:right">${pctPort.toFixed(2)}%</td>
+        <td style="text-align:right">${r.div_ttm ? '$'+fmt(r.div_ttm, 4) : '—'}</td>
+        <td style="text-align:right" class="pos">${rowDivUSD > 0 ? '$'+fmt(rowDivUSD, 0) : '—'}</td>
+        <td style="text-align:right">${r.yield_ttm_pct ? r.yield_ttm_pct.toFixed(2)+ '%' : '—'}</td>
+        <td style="font-size:12px; color:var(--text2)">${r.brokers || ''}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // 7. Aggiorna e mostra il box riassuntivo dei totali filtrati a fondo tabella
+  const totBox = document.getElementById('tbl-totals');
+  if (totBox) {
+    totBox.style.display = 'block';
+    document.getElementById('tot-value').textContent = '$' + fmt(sumValUSD, 0);
+    document.getElementById('tot-div').textContent = '$' + fmt(sumDivUSD, 0);
+    document.getElementById('tot-count').textContent = `(${rows.length} righe mostrate)`;
+  }
+}
+
+function showTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  // Rendi visibile il tab PRIMA di costruire i chart (altrimenti canvas ha height:0)
+  ['overview','geo','dividends','table','broker'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===name ? 'block' : 'none';
+  });
+  if (name === 'geo')       { requestAnimationFrame(() => buildGeoCharts()); }
+  if (name === 'dividends') { requestAnimationFrame(() => buildDivCharts()); }
+  if (name === 'table')     { renderTable(); }
+  if (name === 'broker')    { setTimeout(() => buildBrokerCharts(), 50); }
+}
+
+// ── HUF exchange rate ─────────────────────────────────────────────────────────
+async function fetchHUF() {
+  try {
+    const r = await fetch('data/portfolio_data.json'); // already loaded, use DATA
+    // Try a free FX endpoint (no key needed)
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (!res.ok) throw new Error('FX API error');
+    const fx = await res.json();
+    const usdHuf = fx.rates && fx.rates.HUF;
+    if (!usdHuf) throw new Error('HUF rate missing');
+    return usdHuf;
+  } catch(e) {
+    // Fallback: approx rate baked in, user can see it's an estimate
+    return null;
+  }
+}
+
+async function loadHUF() {
+  const rate = await fetchHUF();
+  const totalUSD    = DATA.total_value_usd;
+  const totalDivTTM = DATA.total_div_ttm_usd || DATA.total_div_usd || 0;
+  const totalDivFwd = DATA.total_div_fwd_usd || 0;
+  if (rate) {
+    const r = rate.toFixed(0);
+    document.getElementById('m-huf').textContent         = 'Ft ' + Math.round(totalUSD    * rate).toLocaleString('hu-HU');
+    document.getElementById('m-huf-sub').textContent     = `USD/HUF ${r}`;
+    document.getElementById('m-div-ttm-huf').textContent = 'Ft ' + Math.round(totalDivTTM * rate).toLocaleString('hu-HU');
+    document.getElementById('m-div-ttm-huf-sub').textContent = `USD/HUF ${r}`;
+
+  } else {
+    ['m-huf','m-div-ttm-huf'].forEach(id => {
+      document.getElementById(id).textContent = 'N/D';
+      document.getElementById(id+'-sub').textContent = 'API non raggiungibile';
+    });
+  }
+}
+
+// ── Column sort state ─────────────────────────────────────────────────────────
+let sortCol = 'value_usd';
+let sortDir = -1; // -1 = desc, 1 = asc
+
+function sortBy(col) {
+  if (sortCol === col) {
+    sortDir = -sortDir;
+  } else {
+    sortCol = col;
+    sortDir = col === 'symbol' ? 1 : -1;
+  }
+  // update header indicators
+  document.querySelectorAll('#main-thead th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.dataset.col === col) th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
+  });
+  renderTable();
+}
+
+// ── Export Excel ──────────────────────────────────────────────────────────────
+function exportExcel() {
+  const p = DATA.portfolio;
+  const totalUSD = DATA.total_value_usd;
+  const rows = [
+    ['Portfolio Report — ' + DATA.fetch_date],
+    ['EUR/USD', DATA.eur_usd, '', 'Valore totale USD', DATA.total_value_usd, 'Dividendi TTM USD', DATA.total_div_ttm_usd],
+    [],
+    ['Simbolo','Valuta','Quantità','Prezzo chiusura','Var.%','Valore USD','% portaf.','Div TTM/az','Div tot. locale','Div tot. USD','Yield TTM %'],
+    ...p.map(r => [
+      r.symbol, r.currency, r.qty,
+      r.prev_close ?? '', r.change_pct ?? '',
+      r.value_usd ?? '', totalUSD > 0 && r.value_usd ? +(r.value_usd/totalUSD*100).toFixed(2) : '',
+      r.div_ttm || 0, r.div_ttm_total_local || 0, r.div_ttm_total_usd || 0, r.yield_ttm_pct ?? ''
+    ])
+  ];
+
+  // Build CSV (Excel opens it correctly with BOM)
+  const bom = '\uFEFF';
+  const csv = bom + rows.map(r => r.map(v => {
+    const s = String(v).replace(/"/g,'""');
+    return s.includes(',') || s.includes('\n') || s.includes('"') ? `"${s}"` : s;
+  }).join(',')).join('\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `portfolio_${DATA.fetch_date}.csv`;
+  a.click();
+}
+
+// ── Export PDF ────────────────────────────────────────────────────────────────
+function exportPDF() {
+  const p = DATA.portfolio;
+  const totalUSD = DATA.total_value_usd;
+  const totalDiv = DATA.total_div_ttm_usd;
+  const eur_usd  = DATA.eur_usd;
+
+  const rows = p.map(r => {
+    const pct = (r.value_usd != null && totalUSD > 0) ? (r.value_usd/totalUSD*100).toFixed(2)+'%' : '—';
+    const price = r.prev_close != null ? fmt(r.prev_close,2) : '—';
+    const chg   = r.change_pct != null ? (r.change_pct>0?'+':'')+r.change_pct.toFixed(2)+'%' : '—';
+    const chgColor = r.change_pct > 0 ? '#1D9E75' : r.change_pct < 0 ? '#D85A30' : '#888780';
+    return `<tr>
+      <td>${r.symbol}</td><td>${r.currency}</td>
+      <td style="text-align:right">${fmt(r.qty,3)}</td>
+      <td style="text-align:right">${price}</td>
+      <td style="text-align:right;color:${chgColor}">${chg}</td>
+      <td style="text-align:right">${r.value_usd!=null?'$'+fmt(r.value_usd,0):'—'}</td>
+      <td style="text-align:right">${pct}</td>
+      <td style="text-align:right">${r.div_ttm?fmt(r.div_ttm,4):'—'}</td>
+      <td style="text-align:right">${r.div_ttm_total_usd?'$'+fmt(r.div_ttm_total_usd,0):'—'}</td>
+      <td style="text-align:right">${r.yield_ttm_pct?r.yield_ttm_pct.toFixed(2)+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Portfolio Report ${DATA.fetch_date}</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:10px;color:#1a1a1a;margin:20px}
+  h1{font-size:16px;margin-bottom:4px}
+  .meta{color:#888;font-size:9px;margin-bottom:16px}
+  .summary{display:flex;gap:24px;margin-bottom:16px;flex-wrap:wrap}
+  .s-item{background:#f7f6f3;border-radius:6px;padding:10px 14px}
+  .s-lbl{font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.4px}
+  .s-val{font-size:14px;font-weight:600;margin-top:2px}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th{background:#f0ede8;padding:5px 7px;font-size:9px;text-align:left;border-bottom:1px solid #ddd;font-weight:600;color:#555}
+  td{padding:4px 7px;border-bottom:1px solid #eee;vertical-align:middle}
+  tr:nth-child(even) td{background:#fafafa}
+  @media print{body{margin:10px}.s-item{border:1px solid #ddd}}
+</style></head><body>
+<h1>Portfolio Report</h1>
+<div class="meta">Data: ${DATA.fetch_date} · EUR/USD: ${eur_usd}</div>
+<div class="summary">
+  <div class="s-item"><div class="s-lbl">Valore totale USD</div><div class="s-val">$${fmt(totalUSD,0)}</div></div>
+  <div class="s-item"><div class="s-lbl">Valore totale EUR</div><div class="s-val">€${fmt(totalUSD/eur_usd,0)}</div></div>
+  <div class="s-item"><div class="s-lbl">Dividendi TTM USD</div><div class="s-val">$${fmt(totalDiv,0)}</div></div>
+  <div class="s-item"><div class="s-lbl">Dividendi TTM EUR</div><div class="s-val">€${fmt(totalDiv/eur_usd,0)}</div></div>
+  <div class="s-item"><div class="s-lbl">Yield portafoglio</div><div class="s-val">${totalUSD>0?(totalDiv/totalUSD*100).toFixed(2):'—'}%</div></div>
+  <div class="s-item"><div class="s-lbl">Posizioni</div><div class="s-val">${p.length}</div></div>
+</div>
+<table>
+<thead><tr>
+  <th>Simbolo</th><th>Val.</th><th style="text-align:right">Qtà</th>
+  <th style="text-align:right">Prezzo</th><th style="text-align:right">Var.%</th>
+  <th style="text-align:right">Valore USD</th><th style="text-align:right">% port.</th>
+  <th style="text-align:right">Div TTM/az</th><th style="text-align:right">Div USD</th>
+  <th style="text-align:right">Yield%</th>
+</tr></thead>
+<tbody>${rows}</tbody>
+</table>
+<div style="margin-top:16px;font-size:9px;color:#aaa">Generato il ${new Date().toLocaleString('it-IT')} · Prezzi: chiusura precedente Yahoo Finance</div>
+</body></html>`;
+
+  const w = window.open('','_blank','width=1100,height=800');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => { w.print(); }, 600);
+}
+
+
+// ── Broker charts ─────────────────────────────────────────────────────────────
+// ── Broker sort state ────────────────────────────────────────────────────────
+let brokerSortCol = 'valueUSD';
+let brokerSortDir = -1; // -1 = desc, 1 = asc
+let brokerData = []; // dati aggregati, riusati al sort
+
+function sortBroker(col) {
+  if (brokerSortCol === col) {
+    brokerSortDir = -brokerSortDir;
+  } else {
+    brokerSortCol = col;
+    brokerSortDir = col === 'name' ? 1 : -1;
+  }
+  document.querySelectorAll('#broker-thead th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.dataset.col === col) th.classList.add(brokerSortDir === 1 ? 'sort-asc' : 'sort-desc');
+  });
+  renderBrokerTable();
+}
+
+function renderBrokerTable() {
+  const totalUSD = DATA.total_value_usd;
+  const PALETTE = ['#378ADD','#1D9E75','#EF9F27','#7F77DD','#D85A30','#36BACD',
+                   '#A3C447','#D06BBF','#888780','#5ABCB9','#F28C28','#6A5ACD'];
+
+  // Ordina copia
+  const sorted = [...brokerData].sort((a, b) => {
+    let va = a[brokerSortCol];
+    let vb = b[brokerSortCol];
+    if (typeof va === 'string') return brokerSortDir * va.localeCompare(vb);
+    return brokerSortDir * ((va || 0) - (vb || 0));
+  });
+
+  // Mappa nome→colore stabile (basata sull'ordine originale per valore)
+  const colorMap = {};
+  brokerData.forEach((b, i) => { colorMap[b.name] = PALETTE[i % PALETTE.length]; });
+
+  const tbody = document.getElementById('broker-tbl');
+  const tfoot = document.getElementById('broker-tbl-foot');
+  let totVal = 0, totDiv = 0;
+
+  tbody.innerHTML = sorted.map(b => {
+    totVal += b.valueUSD;
+    totDiv += b.divTTM;
+    const color  = colorMap[b.name];
+    const pct    = totalUSD > 0 ? (b.valueUSD / totalUSD * 100).toFixed(2) : '0.00';
+    const valEUR = DATA.eur_usd ? (b.valueUSD / DATA.eur_usd) : null;
+    const yield_ = b.valueUSD > 0 ? (b.divTTM / b.valueUSD * 100).toFixed(2) : '—';
+    const bar    = `<span style="display:inline-block;width:${Math.min(Math.round(parseFloat(pct)),100)}%;max-width:100%;height:4px;background:${color};border-radius:2px;vertical-align:middle;margin-left:6px"></span>`;
+    return `<tr>
+      <td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${color};margin-right:7px;vertical-align:middle"></span><strong>${b.name}</strong></td>
+      <td style="text-align:right"><strong>$${fmt(b.valueUSD, 0)}</strong></td>
+      <td style="text-align:right">€${fmt(valEUR, 0)}</td>
+      <td style="text-align:right">${pct}%${bar}</td>
+      <td style="text-align:right">${b.count}</td>
+      <td style="text-align:right">${b.divTTM > 0 ? '$'+fmt(b.divTTM, 0) : '—'}</td>
+      <td style="text-align:right">${yield_ !== '—' ? yield_+'%' : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const totPct   = totalUSD > 0 ? (totVal / totalUSD * 100).toFixed(2) : '100.00';
+  const totEUR   = DATA.eur_usd ? (totVal / DATA.eur_usd) : null;
+  const totYield = totVal > 0 ? (totDiv / totVal * 100).toFixed(2) : '—';
+  tfoot.innerHTML = `<tr style="background:var(--bg2)">
+    <td style="padding:8px 10px">Totale</td>
+    <td style="text-align:right;padding:8px 10px">$${fmt(totVal, 0)}</td>
+    <td style="text-align:right;padding:8px 10px">€${fmt(totEUR, 0)}</td>
+    <td style="text-align:right;padding:8px 10px">${totPct}%</td>
+    <td style="text-align:right;padding:8px 10px">${brokerData.length} broker</td>
+    <td style="text-align:right;padding:8px 10px">$${fmt(totDiv, 0)}</td>
+    <td style="text-align:right;padding:8px 10px">${totYield !== '—' ? totYield+'%' : '—'}</td>
+  </tr>`;
+
+  // Aggiorna indicatore sort nell'header
+  document.querySelectorAll('#broker-thead th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.dataset.col === brokerSortCol)
+      th.classList.add(brokerSortDir === 1 ? 'sort-asc' : 'sort-desc');
+  });
+}
+
+function buildBrokerCharts() {
+  if (chartsBuilt.broker) return;
+  chartsBuilt.broker = true;
+  // Distruggi eventuali chart precedenti (canvas riusato)
+  ['c-broker-donut','c-broker-bar'].forEach(id => {
+    const existing = Chart.getChart(id);
+    if (existing) existing.destroy();
+  });
+  // Forza dimensioni esplicite sui canvas (sono a 0 se il tab era nascosto)
+  const donutEl = document.getElementById('c-broker-donut');
+  const barEl   = document.getElementById('c-broker-bar');
+  const parentH = 260;
+  donutEl.style.height = parentH + 'px';
+  donutEl.style.width  = donutEl.parentElement.clientWidth + 'px';
+  barEl.style.height   = parentH + 'px';
+  barEl.style.width    = barEl.parentElement.clientWidth + 'px';
+
+  const p = DATA.portfolio;
+  const totalUSD = DATA.total_value_usd;
+
+  // Colori assegnati ai broker in ordine
+  const PALETTE = ['#378ADD','#1D9E75','#EF9F27','#7F77DD','#D85A30','#36BACD',
+                   '#A3C447','#D06BBF','#888780','#5ABCB9','#F28C28','#6A5ACD'];
+
+  // Aggrega per broker: per ogni ticker, distribuisce il valore in proporzione alla qty del broker
+  const brokerMap = {};  // broker -> {valueUSD, divTTM, tickers: Set}
+
+  p.forEach(r => {
+    if (!r.brokers) return;
+    // Parsa "BROKER1 (qty1), BROKER2 (qty2)"
+    const parts = r.brokers.split(',').map(s => s.trim());
+    let totalQtyInBrokers = 0;
+    const parsed = [];
+    parts.forEach(part => {
+      const m = part.match(/^(.+?)\s*\(([0-9.]+)\)$/);
+      if (m) {
+        const name = m[1].trim();
+        const qty  = parseFloat(m[2]);
+        parsed.push({name, qty});
+        totalQtyInBrokers += qty;
+      }
+    });
+    // Se non ci sono parentesi, tutto al broker unico
+    if (parsed.length === 0 && parts.length > 0) {
+      parsed.push({name: parts[0], qty: r.qty});
+      totalQtyInBrokers = r.qty;
+    }
+    parsed.forEach(({name, qty}) => {
+      const ratio = totalQtyInBrokers > 0 ? qty / totalQtyInBrokers : 0;
+      if (!brokerMap[name]) brokerMap[name] = {valueUSD: 0, divTTM: 0, tickers: new Set()};
+      brokerMap[name].valueUSD += (r.value_usd || 0) * ratio;
+      brokerMap[name].divTTM   += (r.div_ttm_total_usd || 0) * ratio;
+      brokerMap[name].tickers.add(r.symbol);
+    });
+  });
+
+  // Ordina per valore decrescente
+  const sorted = Object.entries(brokerMap)
+    .map(([name, d]) => ({
+      name,
+      valueUSD: d.valueUSD,
+      valueEUR: DATA.eur_usd ? d.valueUSD / DATA.eur_usd : 0,
+      pct:      totalUSD > 0 ? d.valueUSD / totalUSD * 100 : 0,
+      divTTM:   d.divTTM,
+      yield:    d.valueUSD > 0 ? d.divTTM / d.valueUSD * 100 : 0,
+      count:    d.tickers.size,
+    }))
+    .sort((a, b) => b.valueUSD - a.valueUSD);
+
+  const labels = sorted.map(b => b.name);
+  const values = sorted.map(b => b.valueUSD);
+  const colors = sorted.map((_, i) => PALETTE[i % PALETTE.length]);
+
+  // Legend
+  document.getElementById('leg-broker').innerHTML = sorted.map((b, i) =>
+    `<span><span class="dot" style="background:${colors[i]}"></span>${b.name} <strong>${totalUSD > 0 ? (b.valueUSD/totalUSD*100).toFixed(1) : 0}%</strong></span>`
+  ).join('');
+
+  // Donut
+  new Chart(document.getElementById('c-broker-donut'), {
+    type: 'doughnut',
+    data: {labels, datasets:[{data: values.map(v => +v.toFixed(0)), backgroundColor: colors, borderWidth: 2, borderColor: 'rgba(255,255,255,.6)'}]},
+    options: {responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>`  ${ctx.label}: $${ctx.formattedValue}`}}}}
+  });
+
+  // Bar orizzontale
+  new Chart(document.getElementById('c-broker-bar'), {
+    type: 'bar', indexAxis: 'y',
+    data: {labels, datasets:[{data: values.map(v => +v.toFixed(0)), backgroundColor: colors, borderWidth:0, borderRadius:4}]},
+    options: {responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>`  $${ctx.formattedValue}`}}},
+      scales:{x:{ticks:{callback:v=>'$'+Math.round(v/1000)+'k'}, grid:{color:'rgba(128,128,128,0.08)'}},
+              y:{grid:{display:false}}}}
+  });
+
+  // Salva dati aggregati (ordinati per valore desc di default) e renderizza
+  brokerData = sorted;
+  brokerSortCol = 'valueUSD';
+  brokerSortDir = -1;
+  renderBrokerTable();
+}
+
+loadData();
+</script>
+</body>
+</html>
