@@ -187,13 +187,13 @@
       <div class="card-title">Dividendi per posizione</div>
       <div class="tbl-wrap" style="max-height:420px;overflow-y:auto">
         <table>
-          <thead><tr>
-            <th>Simbolo</th><th>Val.</th>
-            <th style="text-align:right">Qtà</th>
-            <th style="text-align:right">Div/az TTM</th>
-            <th style="text-align:right">Div tot. TTM</th>
-            <th style="text-align:right">Yield TTM</th>
-
+          <thead id="div-thead"><tr>
+            <th data-col="symbol"      onclick="sortDiv('symbol')"      style="cursor:pointer">Simbolo</th>
+            <th data-col="currency"    onclick="sortDiv('currency')"    style="cursor:pointer">Val.</th>
+            <th data-col="qty"         onclick="sortDiv('qty')"         style="text-align:right;cursor:pointer">Qtà</th>
+            <th data-col="div_ttm"     onclick="sortDiv('div_ttm')"     style="text-align:right;cursor:pointer">Div/az TTM</th>
+            <th data-col="divTTMLocal" onclick="sortDiv('divTTMLocal')" style="text-align:right;cursor:pointer">Div tot. TTM</th>
+            <th data-col="yield_ttm"   onclick="sortDiv('yield_ttm')"   style="text-align:right;cursor:pointer">Yield TTM</th>
           </tr></thead>
           <tbody id="div-tbl"></tbody>
         </table>
@@ -218,7 +218,7 @@
             <th                                                                     style="width:48px">Val.</th>
             <th data-col="qty"               onclick="sortBy('qty')"               style="text-align:right;width:60px;cursor:pointer">Qtà</th>
             <th data-col="avg_price"         onclick="sortBy('avg_price')"         style="text-align:right;width:72px;cursor:pointer">Prezzo Acq.</th>
-            <th data-col="prev_close"        onclick="sortBy('prev_close')"        style="text-align:right;width:90px;cursor:pointer">Ult. Chiusura</th>
+            <th data-col="prev_close"        onclick="sortBy('prev_close')"        style="text-align:right;width:90px;cursor:pointer" id="th-prev-close">Chiusura</th>
             <th data-col="perf_pct"          onclick="sortBy('perf_pct')"          style="text-align:right;width:65px;cursor:pointer">%Var</th>
             <th data-col="value_usd"         onclick="sortBy('value_usd')"         style="text-align:right;width:85px;cursor:pointer">Valore $</th>
             <th data-col="port_pct"          onclick="sortBy('port_pct')"          style="text-align:right;width:62px;cursor:pointer">% port.</th>
@@ -360,7 +360,7 @@ function render() {
   const priced      = p.filter(r => r.value_usd != null).length;
 
   document.getElementById('meta-bar').textContent =
-    `Chiusura precedente · ${DATA.fetch_date} · EUR/USD ${eur_usd} · ${priced}/${p.length} prezzi`;
+    `Dati al ${DATA.fetch_date} · EUR/USD ${eur_usd} · ${priced}/${p.length} prezzi`;
 
   document.getElementById('metrics').innerHTML = `
     <div class="met"><div class="lbl">Valore totale (USD)</div><div class="val">${fmtUSD(totalUSD)}</div><div class="sub">${priced}/${p.length} posizioni valorizzate</div></div>
@@ -470,6 +470,50 @@ function buildGeoCharts() {
   });
 }
 
+// ── Dividend table sort ───────────────────────────────────────────────────────
+let divSortCol = 'divTTMLocal';
+let divSortDir = -1;
+let divData = [];
+
+function sortDiv(col) {
+  if (divSortCol === col) {
+    divSortDir = -divSortDir;
+  } else {
+    divSortCol = col;
+    divSortDir = col === 'symbol' || col === 'currency' ? 1 : -1;
+  }
+  renderDivTable();
+}
+
+function renderDivTable() {
+  const sorted = [...divData].sort((a, b) => {
+    let va = a[divSortCol];
+    let vb = b[divSortCol];
+    if (typeof va === 'string') return divSortDir * va.localeCompare(vb);
+    return divSortDir * ((va || 0) - (vb || 0));
+  });
+
+  const tbody = document.getElementById('div-tbl');
+  tbody.innerHTML = sorted.map(r => {
+    const sym = r.currency === 'EUR' ? '€' : '$';
+    return `<tr>
+      <td style="font-weight:500">${r.symbol}</td>
+      <td><span class="badge ${r.currency==='USD'?'b-usd':'b-eur'}">${r.currency}</span></td>
+      <td style="text-align:right">${fmt(r.qty,3)}</td>
+      <td style="text-align:right">${r.div_ttm ? fmt(r.div_ttm,4) : '—'}</td>
+      <td style="text-align:right">${r.divTTMLocal ? sym+fmt(r.divTTMLocal,2) : '—'}</td>
+      <td style="text-align:right${r.yield_ttm>0?';color:#1D9E75':''}">${r.yield_ttm ? r.yield_ttm.toFixed(2)+'%' : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  // Aggiorna indicatori sort
+  document.querySelectorAll('#div-thead th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.dataset.col === divSortCol)
+      th.classList.add(divSortDir === 1 ? 'sort-asc' : 'sort-desc');
+  });
+}
+
 function buildDivCharts() {
   if (chartsBuilt.div) return;
   chartsBuilt.div = true;
@@ -497,25 +541,19 @@ function buildDivCharts() {
   });
 
 
-  // Tabella per posizione
-  const tbody = document.getElementById('div-tbl');
-  const allSorted = [...p].sort((a,b)=>(b.div_fwd_total_usd||0)-(a.div_fwd_total_usd||0));
-  allSorted.forEach(r => {
-    const divTTMLocal = r.div_ttm_total_local ?? r.div_total_local ?? 0;
-    const divTTMUsd   = r.div_ttm_total_usd  ?? r.div_total_usd  ?? 0;
-    const divFwdLocal = r.div_fwd_total_local ?? 0;
-    const divFwdUsd   = r.div_fwd_total_usd  ?? 0;
-    const sym_ttm     = r.currency === 'EUR' ? '€' : '$';
-      tbody.innerHTML += `<tr>
-      <td style="font-weight:500">${r.symbol}</td>
-      <td><span class="badge ${r.currency==='USD'?'b-usd':'b-eur'}">${r.currency}</span></td>
-      <td style="text-align:right">${fmt(r.qty,3)}</td>
-      <td style="text-align:right">${r.div_ttm ? fmt(r.div_ttm,4) : '—'}</td>
-      <td style="text-align:right">${divTTMLocal ? sym_ttm+fmt(divTTMLocal,2) : '—'}</td>
-      <td style="text-align:right${r.yield_ttm_pct>0?' color:#1D9E75':''}">${r.yield_ttm_pct ? r.yield_ttm_pct.toFixed(2)+'%' : '—'}</td>
-
-    </tr>`;
-  });
+  // Prepara dati tabella e salva per sort
+  divData = p.map(r => ({
+    symbol:      r.symbol,
+    currency:    r.currency,
+    qty:         r.qty,
+    div_ttm:     r.div_ttm ?? 0,
+    divTTMLocal: r.div_ttm_total_local ?? r.div_total_local ?? 0,
+    divTTMUsd:   r.div_ttm_total_usd  ?? r.div_total_usd  ?? 0,
+    yield_ttm:   r.yield_ttm_pct ?? 0,
+  }));
+  divSortCol = 'divTTMLocal';
+  divSortDir = -1;
+  renderDivTable();
 }
 
 function populateBrokerFilter() {
@@ -543,6 +581,12 @@ function populateBrokerFilter() {
 
 
 function renderTable() {
+  // Aggiorna intestazione colonna chiusura con la data più recente tra i ticker
+  const dates = DATA.portfolio.map(r => r.close_date).filter(Boolean).sort();
+  const latestDate = dates.length ? dates[dates.length - 1] : '';
+  const thClose = document.getElementById('th-prev-close');
+  if (thClose && latestDate) thClose.innerHTML = `Chiusura<br><span style="font-size:10px;font-weight:400;color:var(--text3)">${latestDate}</span>`;
+
   // 1. Recupero degli elementi reali presenti nell'HTML del report
   const searchEl = document.getElementById('search');
   const elBrk = document.getElementById('f-broker'); // ID corretto basato sulla riga 126 dell'HTML
