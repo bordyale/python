@@ -26,8 +26,10 @@
  *   4. Dal menu 📊 Portfolio Tracker → ⚙️ Setup iniziale
  *
  * ── AGGIORNAMENTO AUTOMATICO ──
- *   - In Apps Script → Triggers (⏰) → Add Trigger
- *   - Funzione: aggiornaPortafoglio | Evento: Day timer 8:00-9:00
+ *   - Dal menu 📊 Portfolio Tracker → ⏰ Aggiornamento automatico → Imposta orario
+ *   - L'ora scelta viene salvata nelle PropertiesService e il trigger viene
+ *     creato/aggiornato automaticamente senza dover aprire Apps Script.
+ *   - Fuso orario usato: impostazione del progetto Apps Script (Europe/Budapest)
  * ============================================================
  */
 
@@ -153,13 +155,19 @@ function setupSheet() {
 function creaMenu() {
   // getUi() non è disponibile in contesto headless (es. script.google.com standalone)
   try {
-    SpreadsheetApp.getUi()
-      .createMenu("📊 Portfolio Tracker")
+    const ui = SpreadsheetApp.getUi();
+    ui.createMenu("📊 Portfolio Tracker")
       .addItem("🔄 Aggiorna tutto", "aggiornaPortafoglio")
       .addSeparator()
       .addItem("💱 Aggiorna cambi", "aggiornaCambi")
       .addItem("📈 Ricalcola portafoglio", "aggiornaCalcoliPortafoglio")
       .addItem("💰 Aggiorna dividendi", "aggiornaDividendi")
+      .addSeparator()
+      .addSubMenu(ui.createMenu("⏰ Aggiornamento automatico")
+        .addItem("▶ Attiva / Cambia orario", "dialogImpostaOrarioTrigger")
+        .addItem("⏹ Disattiva", "disattivaTriggerGiornaliero")
+        .addItem("ℹ️ Stato attuale", "mostraStatoTrigger")
+      )
       .addSeparator()
       .addItem("⚙️ Setup iniziale (solo prima volta)", "setupSheet")
       .addSeparator()
@@ -173,8 +181,201 @@ function creaMenu() {
       .addToUi();
   } catch(e) {
     // Contesto headless: il menu verrà creato automaticamente al primo apertura del foglio
-    Logger.log("Menu non creato (contesto headless) — verrà aggiunto all'apertura del foglio.");
+    Logger.log("Menu non creato (contesto headless) — verrà aggiunto all\'apertura del foglio.");
   }
+}
+
+// ── GESTIONE TRIGGER GIORNALIERO ──────────────────────────────────────────────
+
+/**
+ * Chiave usata in PropertiesService per salvare l\'ora del trigger (0–23).
+ * L\'ID del trigger viene salvato per poterlo cancellare senza scorrere tutti i trigger.
+ */
+const PROP_TRIGGER_HOUR = "autoUpdateHour";
+const PROP_TRIGGER_ID   = "autoUpdateTriggerId";
+
+/**
+ * Mostra un dialog HTML con un selettore orario (00:00–23:00).
+ * L\'utente sceglie l\'ora e conferma → viene chiamata impostaOrarioTrigger(ora).
+ */
+function dialogImpostaOrarioTrigger() {
+  const props   = PropertiesService.getScriptProperties();
+  const oraCorr = props.getProperty(PROP_TRIGGER_HOUR);
+  const attivo  = oraCorr !== null;
+
+  let opzioni = "";
+  for (let h = 0; h < 24; h++) {
+    const label    = h.toString().padStart(2, "0") + ":00";
+    const selected = (attivo && parseInt(oraCorr) === h) ? " selected" : "";
+    opzioni += `<option value="${h}"${selected}>${label}</option>`;
+  }
+
+  const statoHtml = attivo
+    ? `<p style="color:#1D9E75;margin:0 0 12px">✅ Attivo — impostato alle <strong>${String(oraCorr).padStart(2,"0")}:00</strong></p>`
+    : `<p style="color:#888;margin:0 0 12px">⏸ Non attivo — nessun aggiornamento automatico configurato.</p>`;
+
+  const html = HtmlService.createHtmlOutput(`
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 14px; padding: 16px; color: #222; }
+      select { font-size: 16px; padding: 6px 10px; margin: 8px 0 16px; width: 100%;
+               border-radius: 4px; border: 1px solid #ccc; }
+      .btn { display: inline-block; padding: 9px 20px; border: none; border-radius: 4px;
+             font-size: 14px; cursor: pointer; font-weight: bold; }
+      .btn-primary { background: #378ADD; color: #fff; margin-right: 8px; }
+      .btn-secondary { background: #eee; color: #333; }
+      p.note { color: #999; font-size: 11px; margin-top: 14px; line-height: 1.4; }
+    </style>
+    ${statoHtml}
+    <label for="ora"><strong>Scegli l\'ora di aggiornamento:</strong></label><br>
+    <select id="ora">${opzioni}</select><br>
+    <button class="btn btn-primary" onclick="conferma()">💾 Salva</button>
+    <button class="btn btn-secondary" onclick="google.script.host.close()">Annulla</button>
+    <p class="note">
+      ⚠️ Verifica che il fuso orario del progetto Apps Script sia <strong>Europe/Budapest</strong>
+      (⚙️ Project Settings → Time zone).<br>
+      Google eseguirà lo script entro i 60 minuti successivi all\'ora scelta.
+    </p>
+    <script>
+      function conferma() {
+        const ora = parseInt(document.getElementById("ora").value);
+        document.querySelector(".btn-primary").disabled = true;
+        document.querySelector(".btn-primary").textContent = "Salvataggio...";
+        google.script.run
+          .withSuccessHandler(() => google.script.host.close())
+          .withFailureHandler(err => {
+            alert("Errore: " + err.message);
+            document.querySelector(".btn-primary").disabled = false;
+            document.querySelector(".btn-primary").textContent = "💾 Salva";
+          })
+          .impostaOrarioTrigger(ora);
+      }
+    </script>
+  `)
+    .setTitle("⏰ Aggiornamento automatico")
+    .setWidth(390)
+    .setHeight(280);
+
+  SpreadsheetApp.getUi().showModalDialog(html, "⏰ Aggiornamento automatico");
+}
+
+/**
+ * Crea (o ricrea) il trigger giornaliero all\'ora indicata.
+ * Chiamata dal dialog HTML tramite google.script.run.
+ * @param {number} ora  Ora intera 0–23 nel fuso orario del progetto Apps Script
+ */
+function impostaOrarioTrigger(ora) {
+  if (typeof ora !== "number" || ora < 0 || ora > 23) {
+    throw new Error("Ora non valida: " + ora);
+  }
+
+  const props = PropertiesService.getScriptProperties();
+
+  // Elimina il trigger precedente se esiste
+  _eliminaTriggerEsistente(props);
+
+  // Crea il nuovo trigger giornaliero
+  const trigger = ScriptApp.newTrigger("aggiornaPortafoglio")
+    .timeBased()
+    .everyDays(1)
+    .atHour(ora)
+    .create();
+
+  // Salva ora e ID nelle proprietà per gestioni future
+  props.setProperty(PROP_TRIGGER_HOUR, String(ora));
+  props.setProperty(PROP_TRIGGER_ID,   trigger.getUniqueId());
+
+  Logger.log("Trigger creato: aggiornaPortafoglio ogni giorno alle "
+             + String(ora).padStart(2,"0") + ":00 (ID: " + trigger.getUniqueId() + ")");
+
+  SpreadsheetApp.getActiveSpreadsheet().toast(
+    "Aggiornamento automatico attivo ogni giorno alle "
+    + String(ora).padStart(2,"0") + ":00",
+    "⏰ Trigger salvato", 6
+  );
+}
+
+/**
+ * Disattiva il trigger giornaliero e rimuove le proprietà salvate.
+ */
+function disattivaTriggerGiornaliero() {
+  const props   = PropertiesService.getScriptProperties();
+  const rimosso = _eliminaTriggerEsistente(props);
+
+  props.deleteProperty(PROP_TRIGGER_HOUR);
+  props.deleteProperty(PROP_TRIGGER_ID);
+
+  const msg = rimosso
+    ? "Aggiornamento automatico disattivato con successo."
+    : "Nessun trigger attivo trovato da rimuovere.";
+
+  SpreadsheetApp.getUi().alert("⏹ " + msg);
+}
+
+/**
+ * Mostra un alert con lo stato attuale del trigger.
+ */
+function mostraStatoTrigger() {
+  const props = PropertiesService.getScriptProperties();
+  const ora   = props.getProperty(PROP_TRIGGER_HOUR);
+  const id    = props.getProperty(PROP_TRIGGER_ID);
+
+  if (!ora) {
+    SpreadsheetApp.getUi().alert(
+      "⏸ Aggiornamento automatico NON attivo.\n\n"
+      + "Usa il menu ▶ Attiva / Cambia orario per configurarlo."
+    );
+    return;
+  }
+
+  // Verifica che il trigger esista ancora in Apps Script
+  // (potrebbe essere stato eliminato manualmente dall\'utente dall\'interfaccia Triggers)
+  const triggers = ScriptApp.getProjectTriggers();
+  const esiste   = triggers.some(t => t.getUniqueId() === id);
+
+  if (esiste) {
+    SpreadsheetApp.getUi().alert(
+      "✅ Aggiornamento automatico ATTIVO\n\n"
+      + "🕐 Ora impostata: " + String(ora).padStart(2,"0") + ":00\n"
+      + "📌 Trigger ID: " + id + "\n\n"
+      + "Google eseguirà aggiornaPortafoglio ogni giorno\n"
+      + "entro i 60 minuti successivi all\'ora scelta."
+    );
+  } else {
+    // Il trigger è stato eliminato esternamente — pulizia automatica
+    props.deleteProperty(PROP_TRIGGER_HOUR);
+    props.deleteProperty(PROP_TRIGGER_ID);
+    SpreadsheetApp.getUi().alert(
+      "⚠️ Trigger non trovato in Apps Script.\n\n"
+      + "Era impostato alle " + String(ora).padStart(2,"0") + ":00\n"
+      + "ma è stato rimosso esternamente dall\'interfaccia Triggers.\n\n"
+      + "Usa ▶ Attiva / Cambia orario per ricrearlo."
+    );
+  }
+}
+
+/**
+ * Helper interno: elimina il trigger salvato nelle proprietà, se esiste.
+ * Come fallback rimuove tutti i trigger su aggiornaPortafoglio (evita duplicati).
+ * @param {GoogleAppsScript.Properties.Properties} props
+ * @returns {boolean} true se almeno un trigger è stato rimosso
+ */
+function _eliminaTriggerEsistente(props) {
+  const savedId  = props.getProperty(PROP_TRIGGER_ID);
+  const triggers = ScriptApp.getProjectTriggers();
+  let rimosso    = false;
+
+  triggers.forEach(t => {
+    if (t.getHandlerFunction() === "aggiornaPortafoglio") {
+      // Rimuovi se corrisponde all\'ID salvato OPPURE (fallback) se non abbiamo un ID salvato
+      if (!savedId || t.getUniqueId() === savedId) {
+        ScriptApp.deleteTrigger(t);
+        rimosso = true;
+        Logger.log("Trigger rimosso: " + t.getUniqueId());
+      }
+    }
+  });
+
+  return rimosso;
 }
 
 // ── FOGLIO ACQUISTI ───────────────────────────────────────────────────────────
