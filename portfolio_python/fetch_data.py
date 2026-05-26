@@ -703,8 +703,12 @@ Esempi:
             return [_clean_nan(v) for v in obj]
         return obj
 
-    with open("data/portfolio_data.json", "w") as f:
+    import tempfile
+    out_path = "data/portfolio_data.json"
+    tmp_path = out_path + ".tmp"
+    with open(tmp_path, "w") as f:
         json.dump(_clean_nan(output), f, indent=2)
+    os.replace(tmp_path, out_path)  # atomic on POSIX: old file untouched if write fails
 
     print(f"\n{'='*55}")
     print(f"  Data fetch       : {date.today().isoformat()}")
