@@ -204,7 +204,7 @@ $PYTHON -c "
 import socket
 s = socket.socket()
 try:
-    s.connect(('127.0.0.1', $HTTP_PORT))
+    s.connect(('127.0.0.1', $HTTP_PORT))  # check sempre su localhost
     s.close()
     print('PORT_IN_USE')
 except:
@@ -214,17 +214,26 @@ except:
 if grep -q "PORT_IN_USE" /tmp/port_check.txt 2>/dev/null; then
     echo "⚠️  Porto $HTTP_PORT occupato — provo a liberarlo..."
     $PYTHON -c "
-import subprocess, sys
+import subprocess, sys, time
 try:
     r = subprocess.run(['lsof','-ti',':$HTTP_PORT'], capture_output=True, text=True)
-    pid = r.stdout.strip()
-    if pid:
+    pids = r.stdout.strip().split()
+    for pid in pids:
         subprocess.run(['kill', pid])
         print('Fermato PID', pid)
+    if pids:
+        time.sleep(2)
+        # Verifica se la porta è ancora occupata e forza con kill -9
+        r2 = subprocess.run(['lsof','-ti',':$HTTP_PORT'], capture_output=True, text=True)
+        pids2 = r2.stdout.strip().split()
+        for pid in pids2:
+            subprocess.run(['kill', '-9', pid])
+            print('Forzato kill -9 PID', pid)
+        time.sleep(1)
 except Exception as e:
     print('Impossibile liberare la porta:', e)
 "
-    sleep 1
+    sleep 3
 fi
 
 # ── 7. Avvia server HTTP e (opzionalmente) apre il browser ───────────────────
@@ -252,14 +261,33 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         pass  # Sopprimi i log del server
 
-httpd = socketserver.TCPServer(("127.0.0.1", PORT), QuietHandler)
-httpd.allow_reuse_address = True
+class ReusableTCPServer(socketserver.TCPServer):
+    allow_reuse_address = True
+    def server_bind(self):
+        import socket as _socket
+        try:
+            self.socket.setsockopt(_socket.SOL_SOCKET, _socket.SO_REUSEPORT, 1)
+        except AttributeError:
+            pass  # SO_REUSEPORT non disponibile su tutti i sistemi
+        super().server_bind()
+
+httpd = ReusableTCPServer(("0.0.0.0", PORT), QuietHandler)
 
 server_thread = threading.Thread(target=httpd.serve_forever)
 server_thread.daemon = True
 server_thread.start()
 
 print("✓ Server avviato su porta {}".format(PORT))
+
+# Recupera IP locale
+import socket as _socket
+try:
+    _s = _socket.socket(_socket.AF_INET, _socket.SOCK_DGRAM)
+    _s.connect(("8.8.8.8", 80))
+    local_ip = _s.getsockname()[0]
+    _s.close()
+except Exception:
+    local_ip = None
 
 if OPEN_BROWSER:
     print("🔗 Apro il report: {}".format(URL))
@@ -292,7 +320,10 @@ else:
 print("╔══════════════════════════════════════════════╗")
 print("║  ✅ Portfolio Tracker avviato!               ║")
 print("║                                              ║")
-print("║  URL: http://localhost:{}/report.html      ║".format(PORT))
+print("║  Locale:  http://localhost:{}/report.html  ║".format(PORT))
+if local_ip:
+    print("║  LAN:     http://{}:{}/report.html{}║".format(
+        local_ip, PORT, ' ' * max(0, 13 - len(local_ip) - len(str(PORT)))))
 print("║                                              ║")
 print("║  Premi CTRL+C per fermare il server          ║")
 print("╚══════════════════════════════════════════════╝")

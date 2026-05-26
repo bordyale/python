@@ -278,7 +278,7 @@ def load_portfolio_from_db(host: str, port: int, user: str, password: str) -> li
             user=user,
             password=password,
             database="ofbiz",
-            charset="utf8mb3",
+            charset="utf8mb4",
         )
     except mysql.connector.Error as e:
         print(f"ERRORE connessione al database: {e}")
