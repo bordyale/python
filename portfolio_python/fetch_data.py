@@ -410,22 +410,42 @@ def fetch_ticker_data(sym: str) -> dict:
         # Usa history(period="5d") con auto_adjust=True (default):
         #   iloc[-2] = penultimo giorno di trading = "Previous Close" di Yahoo Finance
         #   iloc[-1] = ultimo giorno di trading disponibile = prezzo corrente
-        hist = t.history(period="5d")
+        # Fonte primaria: info["previousClose"] — sempre disponibile e affidabile
+        # Fallback: history(period="5d") per i ticker che non lo espongono in info
         prev_close = None
         current    = None
-        close_date = None   # data effettiva della chiusura prev_close
-        if len(hist) >= 2:
-            prev_close = round(float(hist["Close"].iloc[-2]), 4)
-            current    = round(float(hist["Close"].iloc[-1]), 4)
-            # data del penultimo giorno (= data di prev_close)
-            raw_date = hist.index[-2]
-            if hasattr(raw_date, "date"):
-                close_date = raw_date.date().isoformat()
-            else:
-                close_date = str(raw_date)[:10]
-        elif len(hist) == 1:
-            prev_close = current = round(float(hist["Close"].iloc[-1]), 4)
-            raw_date = hist.index[-1]
+        close_date = None
+
+        # Prova prima con info (più affidabile per ETF con dividendi frequenti)
+        _pc = info.get("previousClose") or info.get("regularMarketPreviousClose")
+        _curr = info.get("regularMarketPrice") or info.get("currentPrice")
+        _date = info.get("regularMarketTime")  # epoch timestamp
+        if _pc and float(_pc) > 0:
+            prev_close = round(float(_pc), 4)
+            current    = round(float(_curr), 4) if _curr else prev_close
+            if _date:
+                from datetime import datetime
+                try:
+                    close_date = datetime.fromtimestamp(int(_date)).date().isoformat()
+                except Exception:
+                    close_date = None
+
+        # Fallback: history — usa period="10d" per avere abbastanza barre
+        hist = t.history(period="10d")
+        if not prev_close:
+            if len(hist) >= 2:
+                prev_close = round(float(hist["Close"].iloc[-2]), 4)
+                current    = round(float(hist["Close"].iloc[-1]), 4)
+                raw_date   = hist.index[-2]
+                close_date = raw_date.date().isoformat() if hasattr(raw_date, "date") else str(raw_date)[:10]
+            elif len(hist) == 1:
+                prev_close = current = round(float(hist["Close"].iloc[-1]), 4)
+                raw_date   = hist.index[-1]
+                close_date = raw_date.date().isoformat() if hasattr(raw_date, "date") else str(raw_date)[:10]
+
+        # Se close_date è ancora None, derivala dalla history
+        if prev_close and not close_date and len(hist) >= 2:
+            raw_date   = hist.index[-2]
             close_date = raw_date.date().isoformat() if hasattr(raw_date, "date") else str(raw_date)[:10]
 
         change_pct = None
